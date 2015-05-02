@@ -17,3 +17,5 @@ RSpec.configure do |config|
 
 end
 
+# for delimiting spec runs in a shell
+3.times do puts "###################################################################" end
