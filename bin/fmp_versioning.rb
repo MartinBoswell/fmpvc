@@ -18,7 +18,7 @@ include FMPVC
 ###
 # capture ddr
 ###
-new_ddr = DDR.new("./spec/data/test_1")
+new_ddr = DDR.new("./spec/data/test_1/ddr")
 puts "Read new DDR of type: #{new_ddr.type}"
 puts "The base directory is: #{new_ddr.base_dir}"
 puts "With #{new_ddr.filenames.size} file#{new_ddr.filenames.size > 1 ? "s" : ""}: "
@@ -28,10 +28,12 @@ new_ddr.filenames.each { |filename| puts "   #{filename}"}
 ###
 # new_ddr.files.each
 ###
-new_ddr.files.each do |a_report|
+ddr_reports = Array.new
+new_ddr.filenames.each do |a_report|
   
   # create an FMPReport object
-  # read in filename file
+  new_report = FMPReport.new(a_report)
+  # which reads in filename file
 
   ###
   # create or clear the directory for this report

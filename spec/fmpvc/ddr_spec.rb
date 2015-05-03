@@ -3,10 +3,10 @@ include FMPVC
 
 describe 'DDR' do
   
-  let (:summary_dir) { './spec/data/test_1/' }
+  let (:summary_dir) { './spec/data/test_1/fmp_ddr' }
   let (:ddr1) { DDR.new(summary_dir) }
 
-  let (:movie_xml1) { './spec/data/test_1/Movies_fmp12.xml'}
+  let (:movie_xml1) { './spec/data/test_1/fmp_ddr/Movies_fmp12.xml'}
   
   it "should read a Summary.xml from disk" do
     expect(ddr1).to be_instance_of(DDR)
@@ -30,7 +30,7 @@ describe 'DDR' do
   end
   
   it "should be able to determine the base directory of the FMP file" do
-    expect(ddr1.base_dir).to eq("/Users/boswell/Dropbox/Projects/2015/Q1_FMP_versioning/fmp_versioning/spec/data/test_1")
+    expect(ddr1.base_dir).to eq(File.expand_path("./spec/data/test_1/fmp_ddr"))
   end
   
   
