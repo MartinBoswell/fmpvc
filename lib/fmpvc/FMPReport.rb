@@ -52,12 +52,10 @@ module FMPVC
     
     def write_scripts(object_xpath = '/FMPReport/File/ScriptCatalog')
       current_disk_folder = disk_path_from_base('/FMPReport/File/ScriptCatalog', object_xpath)
-      # puts "Current disk folder: #{current_disk_folder}.  Folders: #{@report.xpath("#{object_xpath}/*[name()='Group']").each {|f| print f['name']}}"
       
       script_groups = @report.xpath("#{object_xpath}/*[name()='Group']")
       script_groups.each do |a_folder|
         full_folder_path = @scripts_dirpath + "#{current_disk_folder}/#{a_folder['name']}"
-        # puts "Full folder path: #{full_folder_path}"
         FileUtils.mkdir_p(full_folder_path)
         write_scripts(a_folder.path)
       end
@@ -65,10 +63,13 @@ module FMPVC
       scripts = @report.xpath("#{object_xpath}/*[name()='Script']")
       scripts.each do |a_script|
         script_name = a_script["name"]
-        # puts "Script name: #{script_name}"
         this_script_disk_path = @scripts_dirpath + "/#{current_disk_folder}"
         FileUtils.mkdir_p(this_script_disk_path) unless File.readable?(this_script_disk_path)
-        File.open(this_script_disk_path + "/#{script_name}.txt", 'w') do |f| f.puts "a script" end
+        
+        # write the text value of the script line to the new script file
+        File.open(this_script_disk_path + "/#{script_name}.txt", 'w') do |f| 
+          a_script.xpath("./StepList/Step/StepText").each {|t| f.puts t.text.gsub(%r{\n},'') } # remove \n from middle of steps
+        end
       end
     end
     
