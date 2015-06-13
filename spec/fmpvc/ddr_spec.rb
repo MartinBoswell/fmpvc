@@ -22,18 +22,19 @@ describe 'DDR' do
   end
     
   it "should have at least one file node" do
-    expect(ddr1.filenames.size).to be >= 1
+    expect(ddr1.fmp_files.size).to be >= 1
   end
   
   it "should read the file names of the nodes" do
-    expect(ddr1.filenames.first).to eq("Movies.fmp12")
+    expect(ddr1.fmp_files.first).to eq("Movies.fmp12")
   end
   
   it "should be able to determine the base directory of the FMP file" do
     expect(ddr1.base_dir).to eq(File.expand_path("./spec/data/test_1/fmp_ddr"))
     # expect(ddr1.base_dir).to eq("/Users/boswell/Dropbox/Projects/2015/Q1_FMP_versioning/fmp_versioning/spec/data/test_1/fmp_ddr")
   end
-  
+  it "should return list of the xml files"
+  it "should generate the FMPReports itself on request"
   
   
 end
