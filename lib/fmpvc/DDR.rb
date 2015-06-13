@@ -25,6 +25,7 @@ module FMPVC
     end
     
     def parse
+      post_notification('Summary', 'Parsing')
       summary          = Nokogiri::XML(@content)
       attrs            = summary.xpath("//FMPReport").first # "there can be only one"
       @type            = attrs["type"] ; raise RuntimeError, "Incorrect file type: not a DDR Summary.xml file!" unless @type == "Summary"
@@ -63,6 +64,7 @@ module FMPVC
     end
     
     def write_summary
+      post_notification('Summary file', 'Writing')
       FileUtils.mkdir(@base_dir_text_path) unless File.directory?(@base_dir_text_path)
       summary_format      = "%25s  %-512s\n"
       # report_params       = ["BaseTables", "Tables", "Relationships", "Privileges", "ExtendedPrivileges", "FileAccess", "Layouts", "Scripts", "ValueLists", "CustomFunctions", "FileReferences", "CustomMenuSets", "CustomMenus"]

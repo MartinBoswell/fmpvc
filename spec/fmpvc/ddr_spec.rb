@@ -3,14 +3,14 @@ include FMPVC
 
 describe 'DDR' do
   
-  # # Suppress stdout for progress indicators
-  # before(:all) do
-  #   @stdout = $stdout
-  #   $stdout = File.open(File::NULL, 'w+')
-  # end
-  # after(:all) do
-  #   $stdout = @stdout
-  # end
+  # Suppress stdout for progress indicators
+  before(:all) do
+    @stdout = $stdout
+    $stdout = File.open(File::NULL, 'w+')
+  end
+  after(:all) do
+    $stdout = @stdout
+  end
   
   let (:summary_dir) { './spec/data/test_1/fmp_ddr' }
   let (:ddr1)        { DDR.new(summary_dir) }
@@ -74,4 +74,20 @@ describe 'DDR' do
     # ddr1.write_summary (only needed once, above)
     expect(IO.read("#{ddr1.base_dir_text_path}/Summary.txt")).to match(%r{File: \s+ link:\ "\.//Movies_fmp12\.xml" \s+ name:\ Movies.fmp12}mx)
   end
+  
+  describe '#post_notification', :focus => true do
+    it "should update user on progress" do
+      ddr2 = DDR.new(summary_dir) # if I use ddr1, it's parsed for each of these and so additional messages
+      expect { ddr2.post_notification('an object', 'Updating') }.to output("Updating an object\n").to_stdout
+    end
+    it "should update user on progress when a ddr is parsed" do
+      ddr2 = DDR.new(summary_dir)
+      expect { ddr2.parse }.to output("Parsing Summary\n").to_stdout
+    end
+    it "should update user on progress when a ddr summary is written to disk" do
+      ddr2 = DDR.new(summary_dir)
+      expect { ddr2.write_summary }.to output("Writing Summary file\n").to_stdout
+    end
+  end
+  
 end
