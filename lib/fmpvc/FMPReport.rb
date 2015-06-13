@@ -25,6 +25,7 @@ module FMPVC
       @value_lists_dirpath          = @report_dirpath + "/ValueLists"
       @custom_functions_dirpath     = @report_dirpath + "/CustomFunctions"
       @accounts_filepath            = @report_dirpath + "/Accounts.txt"
+      @privileges_filepath          = @report_dirpath + "/PrivilegeSets.txt"
       
       self.parse
       self.clean_dir
@@ -34,6 +35,7 @@ module FMPVC
       self.write_value_lists
       self.write_custom_functions
       self.write_accounts
+      self.write_privilege_sets
       
     end
 
@@ -211,6 +213,48 @@ module FMPVC
         f.write(yaml_output)
       end
     end
+
+    def write_privilege_sets
+      account_path = '/FMPReport/File/PrivilegesCatalog'
+      privileges = @report.xpath("#{account_path}/*[name()='PrivilegeSet']")
+      File.open(@privileges_filepath, 'w') do |f|
+        yaml_output = "---\n"
+        privileges_format        = "%6d  %-25s  %-8s  %-10s  %-15s  %-12s  %-12s  %-12s  %-12s  %-70s"
+        privileges_header_format = privileges_format.gsub(%r{d}, 's')
+        f.puts format(privileges_header_format, "id", "Name", "Print?", "Export?", "Manage Ext'd?", "Override?", "Disconnect?", "Password?", "Menus", "Description")
+        f.puts format(privileges_header_format, "--", "----", "------", "-------", "-------------", "---------", "-----------", "---------", "-----", "-----------")
+        privileges.each do |a_privilege_set|
+          privilege_set_id                                    = a_privilege_set['id']
+          privilege_set_name                                  = a_privilege_set['name']
+          privilege_set_comment                               = a_privilege_set['comment']
+          privilege_set_printing                              = a_privilege_set['printing']
+          privilege_set_exporting                             = a_privilege_set['exporting']
+          privilege_set_managedExtended                       = a_privilege_set['managedExtended']
+          privilege_set_overrideValidationWarning             = a_privilege_set['overrideValidationWarning']
+          privilege_set_idleDisconnect                        = a_privilege_set['idleDisconnect']
+          privilege_set_allowModifyPassword                   = a_privilege_set['allowModifyPassword']
+          privilege_set_menu                                  = a_privilege_set['menu']
+
+          # account_Description                         = a_privilege_set.xpath('./Description').text
+          f.puts format(
+                      privileges_format \
+                    , privilege_set_id \
+                    , privilege_set_name \
+                    , privilege_set_printing \
+                    , privilege_set_exporting \
+                    , privilege_set_managedExtended \
+                    , privilege_set_overrideValidationWarning \
+                    , privilege_set_idleDisconnect \
+                    , privilege_set_allowModifyPassword \
+                    , privilege_set_menu \
+                    , privilege_set_comment \
+          )
+          yaml_output += element2yaml(a_privilege_set).gsub(%r{\A --- \n}mx, '')
+        end
+        f.write(yaml_output)
+      end
+    end
+
 
   end
 
