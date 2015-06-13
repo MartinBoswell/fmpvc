@@ -4,7 +4,7 @@ module FMPVC
   
   class DDR
     
-    attr_reader :content, :type, :fmp_files, :xml_files, :base_dir, :reports
+    attr_reader :content, :type, :fmp_files, :xml_files, :base_dir, :reports, :fmpa_version, :creation_time, :creation_date
     
     def initialize(summary_directory, summary_filename = "Summary.xml")
 
@@ -20,11 +20,16 @@ module FMPVC
     
     def parse
       summary = Nokogiri::XML(@content)
-      @type = summary.xpath("//FMPReport").first["type"]
+      attrs = summary.xpath("//FMPReport").first
+      @type = attrs["type"]
 
       if @type != "Summary"
         raise RuntimeError, "Incorrect file type: not a DDR Summary.xml file!"
       end
+      
+      @fmpa_version =  attrs["version"]
+      @creation_time = attrs["creationTime"]
+      @creation_date = attrs["creationDate"]
       
       # create list of files in this DDR
       fmp_reports   = summary.xpath("//FMPReport/File")  

@@ -39,8 +39,17 @@ describe 'DDR' do
     expect(ddr1.process_reports.first.class).to be FMPVC::FMPReport
   end
   
+  it "should write know its generator version" do
+    expect(ddr1.fmpa_version).to eq("14.0.1")
+  end
+  it "should write know its creation date" do
+    expect(ddr1.creation_date).to eq("2015-4-23")
+  end
+  it "should write know its creation time" do
+    expect(ddr1.creation_time).to eq("4:50:35 PM")
+  end
+  
   it "should write a Summary file with generation details"
   it "should write files to disk on command"
-  
-  
+
 end
