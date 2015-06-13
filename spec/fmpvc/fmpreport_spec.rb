@@ -344,11 +344,13 @@ describe 'FMPReport' do
     
     end
   
-    describe '#write_layouts', :focus => false do
+    describe '#write_layouts', :focus => true do
     
       let (:layout_folder)                    { find_path_with_base(@report2.report_dirpath + "/Layouts") }
       let (:layout_file)                      { find_path_with_base(layout_folder + '/Actors') }
       let (:layout_file_content)              { IO.read(layout_file) }
+      let (:nested_layout_folder)             { find_path_with_base(@report2.report_dirpath + "/Layouts/Script Resources") }
+      let (:nested_layout_file)               { find_path_with_base(@report2.report_dirpath + "/Layouts/Script Resources (id 4)/DDR Instruction") }
     
       it "should create a folder for layouts" do
         expect(File.directory?(layout_folder)).to be true
@@ -362,11 +364,17 @@ describe 'FMPReport' do
       it "should create a layout file that lists the layout objects" do
         expect(layout_file_content).to match(%r{Field \s+ Actors::_s_creation \s+ Field \s+ Actors::_s_modification}mx)
       end
+      it "should create nested layout folders" do 
+        expect(File.directory?(nested_layout_folder)).to be true
+      end
+      it "should create script files in nested folders" do
+        expect(File.exists?(nested_layout_file)).to be true
+      end
       it "should create a layout file that lists hierarchical layout objects "
     
     end
   
-    describe '#write_themes', :focus => true do
+    describe '#write_themes', :focus => false do
           
       let (:themes_file)               { find_path_with_base(@report2.report_dirpath + "/Themes") }
       let (:themes_file_content)       { IO.read(themes_file) }
