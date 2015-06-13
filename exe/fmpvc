@@ -9,6 +9,7 @@ time_start = Time.new
 ddr_dir = './fmp_ddr'
 ddr = DDR.new(ddr_dir)
 ddr.process_reports
+ddr.write_summary
 ddr.write_reports
 
 # create a tree file, if available
