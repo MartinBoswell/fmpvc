@@ -72,9 +72,7 @@ module FMPVC
     end
     
     def element2yaml(xml_element)
-      "some YAML output"
-      # value_lists        = report.xpath("/FMPReport/File/ValueListCatalog/ValueList[1]")
-  		element_xml							= xml_element.to_xml
+  		element_xml							= xml_element.to_xml({:encoding => 'UTF-8'}) # REMEMBER: the encoding
   		element_hash						= Hash.from_xml(element_xml)
   		element_yaml						= element_hash.to_yaml
     end
@@ -170,6 +168,7 @@ module FMPVC
             t_comment = t.xpath("./Comment").text
             f.puts format(table_format, t['id'], t['name'], t['dataType'], t['fieldType'], t_comment)
           end
+          f.write(element2yaml(a_table)) # a_table.path) # 
         end
       end
     end

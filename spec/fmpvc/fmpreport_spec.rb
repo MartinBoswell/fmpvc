@@ -125,6 +125,8 @@ describe 'FMPReport' do
 
 
   describe '#write_tables' do
+    
+    let( :movie_file )      { IO.read(find_path_with_base(report2.report_dirpath + "/Tables/Movies")) }
   
     it "should create a table file on disk" do
       table_list = Dir.glob(report2.report_dirpath + "/Tables/*.txt")
@@ -137,16 +139,17 @@ describe 'FMPReport' do
       
     end
     it "should create table files with field comments" do
-      table_file_content = IO.read(find_path_with_base(report2.report_dirpath + "/Tables/Movies"))
-      expect(table_file_content).to match(%r{ \s+ 4 \s+ name \s+ Text \s+ Normal \s+ Name\ of\ the\ movie\.}mx)
+      expect(movie_file).to match(%r{ \s+ 4 \s+ name \s+ Text \s+ Normal \s+ Name\ of\ the\ movie\.}mx)
+    end
+    it "should append the full YAML to the table's file" do
+      expect(movie_file).to match(%r{--- \s+ BaseTable: \s+ id:}mx)
     end
     
   end
   
   describe '#element2yaml' do
-    # Internal only; no unit tests.
-    # it "should take a Nokogiri::XML::Element and return YAML" do
-    # end
+    # Internal method;  no interface => no unit tests
+    # it "should take a Nokogiri::XML::Element and return YAML"
   end
 
 end
