@@ -5,12 +5,12 @@ require 'fmpvc/version'
 
 Gem::Specification.new do |spec|
   spec.name          = "fmpvc"
-  spec.version       = Fmpvc::VERSION
+  spec.version       = FMPVC::VERSION
   spec.authors       = ["Martin S. Boswell"]
-  spec.email         = ["MSBoswell@lbl.gov"]
+  spec.email         = ["mboswell@me.com"]
 
-  spec.summary       = %q{TODO: Write a short summary, because Rubygems requires one.}
-  spec.description   = %q{TODO: Write a longer description or delete this line.}
+  spec.summary       = %q{Create a text version of FileMaker's DDR for use with a version control system.}
+  spec.description   = %q{Process FileMaker Pro Advanced's Database Design Report (DDR) to produce textual representations of the objects with the intention of using this output in a version control system.}
   spec.homepage      = "TODO: Put your gem's website or public repo URL here."
   spec.license       = "MIT"
 
@@ -23,10 +23,14 @@ Gem::Specification.new do |spec|
   end
 
   spec.files         = `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
-  spec.bindir        = "exe"
+  spec.bindir        = 'exe'
   spec.executables   = spec.files.grep(%r{^exe/}) { |f| File.basename(f) }
-  spec.require_paths = ["lib"]
+  spec.require_paths = ['lib']
 
-  spec.add_development_dependency "bundler", "~> 1.9"
-  spec.add_development_dependency "rake", "~> 10.0"
+  spec.add_development_dependency 'bundler',    '~> 1.9'
+  spec.add_development_dependency 'rake',       '~> 10.0'
+  
+  spec.add_dependency 'nokogiri',               '~> 1.6.6'
+  spec.add_dependency 'activesupport',          '~> 4.2'
+
 end

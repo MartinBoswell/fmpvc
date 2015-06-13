@@ -3,7 +3,7 @@
 
 puts "Adding. the DDR and FMPReport libraries."
 require 'fmpvc'
-# include FMPVC
+include FMPVC
 
 puts "Create new DDR..."
 ddr_dir = './fmp_ddr'

@@ -1,8 +1,8 @@
 require 'spec_helper'
 
-describe Fmpvc do
+describe FMPVC do
   it 'has a version number' do
-    expect(Fmpvc::VERSION).not_to be nil
+    expect(FMPVC::VERSION).not_to be nil
   end
 
   it 'does something useful' do
