@@ -6,7 +6,8 @@ module FMPVC
   # for xml2yaml
   require 'active_support/core_ext/hash/conversions'
 	require 'yaml'
-  
+
+  NEWLINE = "\n"
   
   class FMPReport
     
@@ -26,6 +27,7 @@ module FMPVC
       @custom_functions_dirpath     = @report_dirpath + "/CustomFunctions"
       @accounts_filepath            = @report_dirpath + "/Accounts.txt"
       @privileges_filepath          = @report_dirpath + "/PrivilegeSets.txt"
+      @ext_privileges_filepath      = @report_dirpath + "/ExtendedPrivileges.txt"
       
       self.parse
       self.clean_dir
@@ -36,6 +38,7 @@ module FMPVC
       self.write_custom_functions
       self.write_accounts
       self.write_privilege_sets
+      self.write_extended_privileges
       
     end
 
@@ -131,7 +134,7 @@ module FMPVC
           if source_type == "Custom"
             a_value_list.xpath("./CustomValues/Text").each {|t| f.puts t.text}
           else # elsif source_type == "Field"
-            f.write(element2yaml(a_value_list))
+            f.write(NEWLINE + element2yaml(a_value_list))
           end
         end
       end
@@ -174,7 +177,7 @@ module FMPVC
             t_comment = t.xpath("./Comment").text
             f.puts format(table_format, t['id'], t['name'], t['dataType'], t['fieldType'], t_comment)
           end
-          f.write(element2yaml(a_table)) # a_table.path) # 
+          f.write(NEWLINE + element2yaml(a_table)) # a_table.path) # 
         end
       end
     end
@@ -210,19 +213,19 @@ module FMPVC
           )
           yaml_output += element2yaml(an_account).gsub(%r{\A --- \n}mx, '')
         end
-        f.write(yaml_output)
+        f.write(NEWLINE + yaml_output)
       end
     end
 
     def write_privilege_sets
-      account_path = '/FMPReport/File/PrivilegesCatalog'
-      privileges = @report.xpath("#{account_path}/*[name()='PrivilegeSet']")
+      privilege_set_path = '/FMPReport/File/PrivilegesCatalog'
+      privileges = @report.xpath("#{privilege_set_path}/*[name()='PrivilegeSet']")
       File.open(@privileges_filepath, 'w') do |f|
         yaml_output = "---\n"
-        privileges_format        = "%6d  %-25s  %-8s  %-10s  %-15s  %-12s  %-12s  %-12s  %-12s  %-70s"
+        privileges_format        = "%6d  %-25s  %-8s  %-10s  %-15s  %-12s  %-12s  %-12s  %-8s  %-18s %-11s  %-10s   %-12s  %-10s   %-16s  %-10s  %-70s"
         privileges_header_format = privileges_format.gsub(%r{d}, 's')
-        f.puts format(privileges_header_format, "id", "Name", "Print?", "Export?", "Manage Ext'd?", "Override?", "Disconnect?", "Password?", "Menus", "Description")
-        f.puts format(privileges_header_format, "--", "----", "------", "-------", "-------------", "---------", "-----------", "---------", "-----", "-----------")
+        f.puts format(privileges_header_format, "id", "Name", "Print?", "Export?", "Manage Ext'd?", "Override?", "Disconnect?", "Password?", "Menus", "Records", "Layouts", "(Creation)", "ValueLists", "(Creation)", "Scripts", "(Creation)", "Description")
+        f.puts format(privileges_header_format, "--", "----", "------", "-------", "-------------", "---------", "-----------", "---------", "-----", "-------", "-------", "----------", "----------", "----------", "-------", "----------", "-----------")
         privileges.each do |a_privilege_set|
           privilege_set_id                                    = a_privilege_set['id']
           privilege_set_name                                  = a_privilege_set['name']
@@ -235,7 +238,14 @@ module FMPVC
           privilege_set_allowModifyPassword                   = a_privilege_set['allowModifyPassword']
           privilege_set_menu                                  = a_privilege_set['menu']
 
-          # account_Description                         = a_privilege_set.xpath('./Description').text
+          privilege_set_records_value                         = a_privilege_set.xpath('./Records').first['value']
+          privilege_set_layouts_value                         = a_privilege_set.xpath('./Layouts').first['value']
+          privilege_set_layouts_creation                      = a_privilege_set.xpath('./Layouts').first['allowCreation']
+          privilege_set_valuelists_value                      = a_privilege_set.xpath('./ValueLists').first['value']
+          privilege_set_valuelists_creation                   = a_privilege_set.xpath('./ValueLists').first['allowCreation']
+          privilege_set_scripts_value                         = a_privilege_set.xpath('./Scripts').first['value']
+          privilege_set_scripts_creation                      = a_privilege_set.xpath('./Scripts').first['allowCreation']
+          
           f.puts format(
                       privileges_format \
                     , privilege_set_id \
@@ -247,14 +257,48 @@ module FMPVC
                     , privilege_set_idleDisconnect \
                     , privilege_set_allowModifyPassword \
                     , privilege_set_menu \
+                    , privilege_set_records_value \
+                    , privilege_set_layouts_value \
+                    , privilege_set_layouts_creation \
+                    , privilege_set_valuelists_value \
+                    , privilege_set_valuelists_creation \
+                    , privilege_set_scripts_value \
+                    , privilege_set_scripts_creation \
                     , privilege_set_comment \
           )
           yaml_output += element2yaml(a_privilege_set).gsub(%r{\A --- \n}mx, '')
         end
-        f.write(yaml_output)
+        f.write(NEWLINE + yaml_output)
       end
     end
 
+    def write_extended_privileges
+      ext_privileges_path = '/FMPReport/File/ExtendedPrivilegeCatalog'
+      ext_privileges = @report.xpath("#{ext_privileges_path}/*[name()='ExtendedPrivilege']")
+      File.open(@ext_privileges_filepath, 'w') do |f|
+        yaml_output = "---\n"
+        ext_privilege_format        = "%6d  %-20s  %-85s  %-150s"
+        ext_privilege_header_format = ext_privilege_format.gsub(%r{d}, 's')
+        f.puts format(ext_privilege_header_format, "id", "Name", "Description", "Privilege Sets")
+        f.puts format(ext_privilege_header_format, "--", "----", "-----------", "--------------")
+        ext_privileges.each do |an_ext_privilege|
+          ext_privilege_id                                    = an_ext_privilege['id']
+          ext_privilege_name                                  = an_ext_privilege['name']
+          ext_privilege_comment                               = an_ext_privilege['comment']
+          ext_privilege_sets                                  = an_ext_privilege.xpath('./PrivilegeSetList/*[name()="PrivilegeSet"]').map {|s| s['name']}.join(", ")
+
+          f.puts format(
+                      ext_privilege_format \
+                    , ext_privilege_id \
+                    , ext_privilege_name \
+                    , ext_privilege_comment \
+                    , ext_privilege_sets \
+          )
+          yaml_output += element2yaml(an_ext_privilege).gsub(%r{\A --- \n}mx, '')
+        end
+        f.write(NEWLINE + yaml_output)
+      end
+    end
 
   end
 
