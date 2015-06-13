@@ -4,10 +4,10 @@ include FMPVC
 describe 'FMPReport' do
   
   # clear the fmp_text directory (to make tests accurate for current iteration)
-  test_data = [ './spec/data/test_1/fmp_text' , './spec/data/test_2/fmp_text']
-  test_data.each do |a_dir|
-    FileUtils.rm_rf(a_dir, :verbose => true) if File.directory?(a_dir)
-  end
+  # test_data = [ './spec/data/test_1/fmp_text' , './spec/data/test_2/fmp_text']
+  # test_data.each do |a_dir|
+  #   FileUtils.rm_rf(a_dir, :verbose => true) if File.directory?(a_dir)
+  # end
     
   
   let (:ddr1)        { double("ddr", :base_dir => :'./spec/data/test_1/fmp_ddr/') }
@@ -107,6 +107,7 @@ describe 'FMPReport' do
   
     it "should create a custom function file on disk" do
       expect(Dir.glob(report2.report_dirpath + "/CustomFunctions/*.txt").count).to be >=2
+      # expect function_list to contain "ramones_name"
     end
     it "should create custom functions with good content" do
       custom_function_content = IO.read(find_path_with_base(report2.report_dirpath + "/CustomFunctions/ramones_name"))
@@ -117,13 +118,22 @@ describe 'FMPReport' do
       expect(custom_function_content).to match(%r{Code\(letter\) = 65 ; "A"})
     end
     
-    
   end
 
 
   describe '#write_tables' do
   
-    it "should create a table file on disk"
+    it "should create a table file on disk" do
+      table_list = Dir.glob(report2.report_dirpath + "/Tables/*.txt")
+      expect(table_list.count).to be >=3
+      # expect table_list to contain "Movies"
+    end
+    it "should create table files with good content" do
+      table_file_content = IO.read(find_path_with_base(report2.report_dirpath + "/Tables/Roles"))
+      expect(table_file_content).to match(%r{     5   _kF_movie_id                Number     Normal})
+      
+    end
+    it "should create table files with field comments"
     
   end
 

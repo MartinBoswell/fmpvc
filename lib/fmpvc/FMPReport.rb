@@ -15,6 +15,7 @@ module FMPVC
       @text_dir                    = "#{ddr.base_dir}../fmp_text"
       @text_filename               = fs_sanitize(report_filename)
       @report_dirpath              = "#{@text_dir}/#{@text_filename}"
+      @tables_dirpath              = @report_dirpath + "/Tables"
       @scripts_dirpath             = @report_dirpath + "/Scripts"
       @value_lists_dirpath         = @report_dirpath + "/ValueLists"
       @custom_functions_dirpath    = @report_dirpath + "/CustomFunctions"
@@ -22,6 +23,7 @@ module FMPVC
       self.parse
       self.clean_dir
       self.write_dir
+      self.write_tables
       self.write_scripts
       self.write_value_lists
       self.write_custom_functions
@@ -127,6 +129,27 @@ module FMPVC
         end
       end
       
+    end
+    
+    def write_tables(object_xpath = '/FMPReport/File/BaseTableCatalog')
+      FileUtils.mkdir_p(@tables_dirpath) unless File.directory?(@tables_dirpath)
+      
+      tables = @report.xpath("#{object_xpath}/*[name()='BaseTable']")
+      tables.each do |a_table|
+        table_name                  = a_table['name']
+        table_id                    = a_table['id']
+        sanitized_table_name        = fs_sanitize(table_name)
+        sanitized_table_name_id     = fs_id(sanitized_table_name, table_id)
+        sanitized_table_name_id_ext = sanitized_table_name_id + '.txt'
+        table_format                = "%6d   %-25s   %-10s %-10s   %-50s"
+        File.open(@tables_dirpath + "/#{sanitized_table_name_id_ext}", 'w') do |f|
+          f.puts format(table_format, 0, "Field Name", "Data Type", "Field Type", "Comment")
+          a_table.xpath("//BaseTable[@name='#{a_table['name']}']/FieldCatalog/*[name()='Field']").each do |t| 
+            t_comment = t.xpath("./Comment").text
+            f.puts format(table_format, t['id'], t['name'], t['dataType'], t['fieldType'], t_comment)
+          end
+        end
+      end
     end
 
   end
