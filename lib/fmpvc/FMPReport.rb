@@ -69,7 +69,8 @@ module FMPVC
     end
 
     def fs_sanitize(text_string)
-      text_string.gsub(%r{[\/]}, '_') # just remove [ / ] for now.
+      safe_name = text_string.gsub(%r{\A [\/\.]+ }mx, '') # remove leading dir symbols: . /
+      safe_name.gsub(%r{[\/]}, '_') # just remove [ / ] for now.
     end
     
     def fs_id(fs_name, id)
