@@ -352,6 +352,11 @@ describe 'FMPReport' do
       it "should list the included themes" do
         expect(themes_file_content).to match(%r{01 \s+ Enlightened \s+ Aspire \s+ 5 \s+ en \s+ com\.filemaker\.theme\.enlightened}mx)
       end
+      it "should have real yaml" do
+        expect(themes_file_content).to match(%r{--- \s+ ThemeCatalog: \s+ Theme: \s+ group:\ Aspire}mx)
+      end
+      it "should have good yaml for two themes"
+        # expect(themes_file_content).to match(%r{--- \s+ ThemeCatalog: \s+ Theme: \s+ -\ group:\ Aspire}mx)
       
     end
     
