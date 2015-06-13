@@ -18,6 +18,7 @@ module FMPVC
       @scripts_dirpath  = @report_dirpath + "/Scripts"
       
       self.parse
+      self.clean_dir
       self.write_dir
       self.write_scripts
       
@@ -53,6 +54,10 @@ module FMPVC
     def write_dir
       # raise(RuntimeError, "Error: there is no text output base dir (e.g. /fmp_text)") unless File.readable?(@text_dir)  # needed with _p?
       FileUtils.mkdir_p(@report_dirpath)
+    end
+    
+    def clean_dir
+      FileUtils.rm_rf(@report_dirpath)
     end
     
     def write_scripts(object_xpath = '/FMPReport/File/ScriptCatalog')

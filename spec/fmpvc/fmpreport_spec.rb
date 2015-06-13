@@ -82,9 +82,15 @@ describe 'FMPReport' do
         
         
         
-    it "should clean previous data, i.e. clean the fmp_text folders"
-
-
+    it "should clean previous data, i.e. clean the fmp_text folders" do
+      # create a file in the fmp_text dir
+      temp_test_file = "#{ddr2.base_dir}/../fmp_text/#{report_file}/TEST_FILE_FOR_CLEANING.txt"
+      File.new(temp_test_file, 'w') { |f| puts 'For dir clean test.\n'}
+      # create a ddr
+      new_report = FMPReport.new(report_file, ddr2)
+      # file should have been cleaned
+      expect(File.exists?(temp_test_file)).to be false
+    end
   end
 
   
