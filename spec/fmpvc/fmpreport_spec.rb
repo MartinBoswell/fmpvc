@@ -344,7 +344,7 @@ describe 'FMPReport' do
     
     end
   
-    describe '#write_layouts', :focus => true do
+    describe '#write_layouts', :focus => false do
     
       let (:layout_folder)                    { find_path_with_base(@report2.report_dirpath + "/Layouts") }
       let (:layout_file)                      { find_path_with_base(layout_folder + '/Actors') }
@@ -370,7 +370,7 @@ describe 'FMPReport' do
       it "should create script files in nested folders" do
         expect(File.exists?(nested_layout_file)).to be true
       end
-      it "should create a layout file that lists hierarchical layout objects "
+      it "should create a layout file that lists hierarchical layout objects"
     
     end
   
@@ -391,8 +391,7 @@ describe 'FMPReport' do
       it "should have real yaml" do
         expect(themes_file_content).to match(%r{--- \s+ ThemeCatalog: \s+ Theme: \s+ group:\ Aspire}mx)
       end
-      it "should have good yaml for two themes"
-        # expect(themes_file_content).to match(%r{--- \s+ ThemeCatalog: \s+ Theme: \s+ -\ group:\ Aspire}mx)
+      it "should have good yaml for two or more themes"
       
     end
     
@@ -403,9 +402,8 @@ end
 
 =begin
 
-Running single spec:
+Running single spec (:focus => true):
 
-, :focus => true
 rspec --tag focus spec/fmpvc/fmpreport_spec.rb
 
 =end

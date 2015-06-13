@@ -1,18 +1,21 @@
 #!/usr/bin/env ruby
 # Requires: Summary.xml, run from main directory (which includes fmp_{clone,ddr,text}/)
 
-puts "Adding. the DDR and FMPReport libraries."
 require 'fmpvc'
 include FMPVC
 
-puts "Create new DDR..."
+# create a DDR
+print "Create new DDR..."
 ddr_dir = './fmp_ddr'
 ddr = DDR.new(ddr_dir)
-puts "Create FMPReports (and their on-disk products)..."
+puts "done."
+
+# process FMPReport files
+print "Create FMPReports (and their on-disk products)..."
 ddr.process_reportfiles
+puts "done."
 
-puts "Done."
-
+# create a tree file
 require 'mkmf'
 module MakeMakefile::Logging
   @logfile = File::NULL
@@ -22,6 +25,7 @@ if tree_command
    puts "Creating tree.txt"
    `#{tree_command} -F > tree.txt`
 end
+
 puts
 
 

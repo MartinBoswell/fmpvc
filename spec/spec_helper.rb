@@ -1,13 +1,5 @@
-# from bundler
-# $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
-# require 'fmpvc'
-
-require 'rubygems'
-
-# helper to load all of the classes for rspec tests
-Dir.glob(File.dirname(__FILE__) + "/../lib/**/*.rb" ).each do |f|
-  require_relative f
-end
+$LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+require 'fmpvc'
 
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
