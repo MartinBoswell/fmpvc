@@ -509,18 +509,30 @@ module FMPVC
       
     end
     
-    def write_layouts
+    def write_layouts(layouts_path = '/FMPReport/File/LayoutCatalog')
       FileUtils.mkdir_p(@layouts_dirpath) unless File.directory?(@layouts_dirpath)
+      current_disk_folder = disk_path_from_base('/FMPReport/File/LayoutCatalog', layouts_path)
       
-      layouts_path = '/FMPReport/File/LayoutCatalog'
-      layouts = @report.xpath(layouts_path + "/*[name()='Layout']")
+      layout_groups = @report.xpath("#{layouts_path}/*[name()='Group']")
+      layout_groups.each do |a_folder|
+        layout_dirname         = a_folder['name']
+        layout_dir_id          = a_folder['id']
+        sanitized_dirname      = fs_sanitize(layout_dirname)
+        sanitized_dirname_id   = fs_id(sanitized_dirname, layout_dir_id)
+        full_folder_path = @layouts_dirpath + "#{current_disk_folder}/#{sanitized_dirname_id}"
+        FileUtils.mkdir_p(full_folder_path)
+        write_layouts(a_folder.path)
+      end
+      
+      layouts = @report.xpath("#{layouts_path}/*[name()='Layout']")
       layouts.each do |l|
         layout_name                                 = l['name']
         layout_id                                   = l['id']
         sanitized_layout_name                       = fs_sanitize(layout_name)
         sanitized_layout_name_id                    = fs_id(sanitized_layout_name, layout_id)
         sanitized_layout_name_id_ext                = sanitized_layout_name_id + '.txt'
-        File.open(@layouts_dirpath + "/#{sanitized_layout_name_id_ext}", 'w') do |f|
+        this_layout_disk_path                       = @layouts_dirpath + "/#{current_disk_folder}"
+        File.open("#{this_layout_disk_path}/#{sanitized_layout_name_id_ext}", 'w') do |f|
           layout_table                              = l.xpath('./Table').first['name']
           layout_theme                              = l.xpath('./Theme').first['name']
           layout_format = "%18s %-25s"
