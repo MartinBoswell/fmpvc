@@ -320,15 +320,15 @@ module FMPVC
     
     def write_relationships
       relationships_path    = '/FMPReport/File/RelationshipGraph'
+      relationship_graph    = @report.xpath("#{relationships_path}")
       tables                = @report.xpath("#{relationships_path}/TableList/*[name()='Table']")
       relationships         = @report.xpath("#{relationships_path}/RelationshipList/*[name()='Relationship']")
       File.open(@relationships_filepath, 'w') do |f|
-        yaml_output = YAML_START
         table_format = "    %-25s  %-25s"
         f.puts "Tables\n"
         f.puts
-        f.puts format(table_format, "Base Table (id)", "Table Occurance (id)")
-        f.puts format(table_format, "---------------", "--------------------")
+        f.puts format(table_format, "Base Table (id)", "Table occurrence (id)")
+        f.puts format(table_format, "---------------", "---------------------")
         f.puts
         tables.each do |a_table|
           table_id                                            = a_table['id']
@@ -336,8 +336,6 @@ module FMPVC
           basetable_id                                        = a_table['baseTableId']
           basetable_name                                      = a_table['baseTable']
           f.puts format(table_format, "#{basetable_name} (#{basetable_id})", "#{table_name} (#{table_id})")
-
-          yaml_output += element2yaml(a_table).gsub(%r{\A --- \n}mx, '')
         end
         f.puts
         relationship_format = "        %-35s  %-15s  %-35s"
@@ -358,10 +356,8 @@ module FMPVC
             right_field_name                                  = right_field['name']
             f.puts format(relationship_format, "#{left_table}::#{left_field_name}", "#{predicate_type}", "#{right_table}::#{right_field_name}")
           end
-          
-          yaml_output += element2yaml(a_relationship).gsub(%r{\A --- \n}mx, '')
         end
-        f.write(NEWLINE + yaml_output)
+        f.write(NEWLINE + element2yaml(relationship_graph))
       end
 
     end

@@ -219,6 +219,10 @@ describe 'FMPReport' do
       it "should list relationships between TOs" do 
         expect(relationships_file_content).to match(%r{Roles::_kF_movie_id \s+ Equal \s+ Movies::_id}mx)
       end
+      it "should display real YAML" do
+        expect(relationships_file_content).to match(%r{--- \s+ RelationshipGraph: \s+ TableList: \s+ Table: \s+ -\ id:\ '1065090'}mx)
+      end
+      
         
     end
   
