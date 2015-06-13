@@ -35,6 +35,7 @@ module FMPVC
       @file_access_filepath         = @report_dirpath + "/FileAccess.txt"
       @data_sources_filepath        = @report_dirpath + "/ExternalDataSources.txt"
       @file_options_filepath        = @report_dirpath + "/Options.txt"
+      @layouts_dirpath              = @report_dirpath + "/Layouts"
       
       self.parse
       self.clean_dir
@@ -52,6 +53,8 @@ module FMPVC
       self.write_file_access
       self.write_external_data_sources
       self.write_file_options
+      self.write_layouts
+      
       
     end
 
@@ -509,6 +512,48 @@ module FMPVC
       
       
       
+    end
+    
+    def write_layouts
+      FileUtils.mkdir_p(@layouts_dirpath) unless File.directory?(@layouts_dirpath)
+      
+      layouts_path = '/FMPReport/File/LayoutCatalog'
+      layouts = @report.xpath(layouts_path + "/*[name()='Layout']")
+      layouts.each do |l|
+        layout_name                                 = l['name']
+        layout_id                                   = l['id']
+        sanitized_layout_name                       = fs_sanitize(layout_name)
+        sanitized_layout_name_id                    = fs_id(sanitized_layout_name, layout_id)
+        sanitized_layout_name_id_ext                = sanitized_layout_name_id + '.txt'
+        File.open(@layouts_dirpath + "/#{sanitized_layout_name_id_ext}", 'w') do |f|
+          layout_table                              = l.xpath('./Table').first['name']
+          layout_theme                              = l.xpath('./Theme').first['name']
+          layout_format = "%18s %-25s"
+          object_format = "                    %-16s  %-35s"
+          f.puts format(layout_format, "Layout name: ", layout_name)
+          f.puts format(layout_format, "id: ", layout_id)
+          f.puts format(layout_format, "Table: ", layout_table)
+          f.puts format(layout_format, "Theme: ", layout_theme)
+          f.puts
+          f.puts format(layout_format, "Objects: ", '')
+          layout_objects = l.xpath("./*[name()='Object']")                          # find all objects
+          layout_objects_types = layout_objects.map { |o| o['type']}                # list of 'types'
+          if !layout_objects_types.empty?                                           # [].uniq! => nil - don't do that
+            layout_objects_types.uniq! 
+            f.puts format(object_format, "Type", "'Name'" )
+            f.puts format(object_format, "----", "------" )
+          end
+          layout_objects_types.each do |a_type|
+            selected_objects = layout_objects.select { |o| o['type'] == a_type }    # get all the objects of a given type
+              selected_objects.each do |type_obj| # collect all objects of type
+              # f.puts "    #{type_obj['type']}  - #{type_obj.xpath('./*/Name').text}"
+              f.puts format(object_format, type_obj['type'], type_obj.xpath('./*/Name').text) unless type_obj['type'] == "Text"
+            end
+          end
+          # layout_objects.each { |lo| f.puts lo['type'] }
+          f.write(NEWLINE + element2yaml(l))
+        end
+      end
     end
     
   end
