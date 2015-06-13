@@ -177,7 +177,7 @@ describe 'FMPReport' do
       end
     end
   
-    describe '#write_privilege_sets' do
+    describe '#write_privilege_sets', :focus => true do
 
       let (:privileges_file_content)      { IO.read(find_path_with_base(@report2.report_dirpath + "/PrivilegeSets")) }
     
@@ -186,7 +186,10 @@ describe 'FMPReport' do
       end
       it "should have good content in privileges file" do
         expect(privileges_file_content).to match(%r{\[Full\ Access\] \s+ True \s+ True \s+ True \s+ True \s+ False \s+ True \s+ All \s+ CreateEditDelete \s+ Modifiable \s+ True \s+ Modifiable \s+ True \s+ Modifiable \s+ True \s+ access\ to\ everything}mx) # table
-        expect(privileges_file_content).to match(%r{PrivilegeSet: \s+ comment: \s+ access\ to\ everything \s+ id: \s+ '\d+'}mx) # yaml
+        expect(privileges_file_content).to match(%r{PrivilegeSet: \s+ -\ comment: \s+ access\ to\ everything \s+ id: \s+ '\d+'}mx) # yaml
+      end
+      it "should have real YAML" do
+        expect(privileges_file_content).to match(%r{--- \s+ PrivilegesCatalog: \s+ PrivilegeSet: \s+ -\ comment:\ access\ to\ everything \s+ id:\ '1'}mx)
       end
     end
   

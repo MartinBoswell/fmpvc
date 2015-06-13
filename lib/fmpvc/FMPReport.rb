@@ -236,10 +236,10 @@ module FMPVC
     end
 
     def write_privilege_sets
-      privilege_set_path = '/FMPReport/File/PrivilegesCatalog'
-      privileges = @report.xpath("#{privilege_set_path}/*[name()='PrivilegeSet']")
+      privilege_set_path          = '/FMPReport/File/PrivilegesCatalog'
+      privilege_sets              = @report.xpath("#{privilege_set_path}")
+      privileges                  = @report.xpath("#{privilege_set_path}/*[name()='PrivilegeSet']")
       File.open(@privileges_filepath, 'w') do |f|
-        yaml_output = YAML_START
         privileges_format        = "%6d  %-25s  %-8s  %-10s  %-15s  %-12s  %-12s  %-12s  %-8s  %-18s %-11s  %-10s   %-12s  %-10s   %-16s  %-10s  %-70s"
         privileges_header_format = privileges_format.gsub(%r{d}, 's')
         f.puts format(privileges_header_format, "id", "Name", "Print?", "Export?", "Manage Ext'd?", "Override?", "Disconnect?", "Password?", "Menus", "Records", "Layouts", "(Creation)", "ValueLists", "(Creation)", "Scripts", "(Creation)", "Description")
@@ -284,9 +284,8 @@ module FMPVC
                     , privilege_set_scripts_creation \
                     , privilege_set_comment \
           )
-          yaml_output += element2yaml(a_privilege_set).gsub(%r{\A --- \n}mx, '')
         end
-        f.write(NEWLINE + yaml_output)
+        f.write(NEWLINE + element2yaml(privilege_sets))
       end
     end
 
