@@ -110,7 +110,7 @@ describe 'FMPReport' do
       end
     end
 
-    describe '#write_value_lists', :focus => true do
+    describe '#write_value_lists', :focus => false do
       
       let (:custom_value_list)            { IO.read(find_path_with_base(@report2.report_dirpath + "/ValueLists/Favorite Roles")) }
       let (:field_based_value_list)       { IO.read(find_path_with_base(@report2.report_dirpath + "/ValueLists/Role Categories")) }
@@ -133,7 +133,7 @@ describe 'FMPReport' do
     
     end
 
-    describe '#write_custom_functions', :focus => false do
+    describe '#write_custom_functions', :focus => true do
       
       let (:custom_function_content)      { IO.read(find_path_with_base(@report2.report_dirpath + "/CustomFunctions/ramones_name")) }
   

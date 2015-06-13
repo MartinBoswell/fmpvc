@@ -29,7 +29,7 @@ module FMPVC
       # @tables_dirpath               = @report_dirpath + "/Tables"
       # @scripts_dirpath              = @report_dirpath + "/Scripts"
       # @value_lists_dirpath          = @report_dirpath + "/ValueLists"
-      @custom_functions_dirpath     = @report_dirpath + "/CustomFunctions"
+      # @custom_functions_dirpath     = @report_dirpath + "/CustomFunctions"
       @accounts_filepath            = @report_dirpath + "/Accounts.txt"
       @privileges_filepath          = @report_dirpath + "/PrivilegeSets.txt"
       @ext_privileges_filepath      = @report_dirpath + "/ExtendedPrivileges.txt"
@@ -46,10 +46,16 @@ module FMPVC
       self.clean_dir
       self.write_dir
       
-      # self.write_scripts
+      ###
+      ### hierarchical folder structure
+      ###
+      
       @scripts = parse_fms_obj("/FMPReport/File/ScriptCatalog", "/*[name()='Group' or name()='Script']", @script_content)
       write_obj_to_disk(@scripts, @report_dirpath + "/Scripts")
-      #
+
+      ###
+      ### single folder with files
+      ###
 
       # self.parse_fms_obj("/FMPReport/File/ValueListCatalog/*[name()='ValueList']", @value_list_content) # write_value_lists
       @value_lists = parse_fms_obj("/FMPReport/File/ValueListCatalog", "/*[name()='ValueList']", @value_list_content)
@@ -58,8 +64,14 @@ module FMPVC
       @tables = parse_fms_obj("/FMPReport/File/BaseTableCatalog", "/*[name()='BaseTable']", @table_content)
       write_obj_to_disk(@tables, @report_dirpath + "/Tables")
 
-      self.write_custom_functions
+      # self.write_custom_functions
+      @custom_functions = parse_fms_obj("/FMPReport/File/CustomFunctionCatalog", "/*[name()='CustomFunction']", @custom_function_content)
+      write_obj_to_disk(@custom_functions, @report_dirpath + "/CustomFunctions")
       
+      ###
+      ### single file output
+      ###
+
       # self.write_accounts
       @accounts = parse_fms_obj("/FMPReport/File/AccountCatalog", "/*[name()='Account']", @accounts_content, true)
       # puts "Accounts: #{@accounts.class}    ---- #{@accounts.first.class}   :   #{@accounts.first[:name]}"
@@ -182,6 +194,16 @@ module FMPVC
           
         content
       end
+      
+      @custom_function_content = Proc.new do |a_custom_function|
+        content = ''
+        content += a_custom_function.xpath("./Calculation").map {|t| t.text}.join(NEWLINE)
+        content
+      end
+      
+      
+      
+      
       
     end
 
