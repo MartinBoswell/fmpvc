@@ -36,6 +36,7 @@ module FMPVC
       @data_sources_filepath        = @report_dirpath + "/ExternalDataSources.txt"
       @file_options_filepath        = @report_dirpath + "/Options.txt"
       @layouts_dirpath              = @report_dirpath + "/Layouts"
+      @themes_filepath              = @report_dirpath + "/Themes.txt"
       
       self.parse
       self.clean_dir
@@ -54,7 +55,7 @@ module FMPVC
       self.write_external_data_sources
       self.write_file_options
       self.write_layouts
-      
+      self.write_themes
       
     end
 
@@ -531,9 +532,9 @@ module FMPVC
           layout_format = "%18s %-25s"
           object_format = "                    %-16s  %-35s"
           f.puts format(layout_format, "Layout name: ", layout_name)
-          f.puts format(layout_format, "id: ", layout_id)
-          f.puts format(layout_format, "Table: ", layout_table)
-          f.puts format(layout_format, "Theme: ", layout_theme)
+          f.puts format(layout_format, "id: ",          layout_id)
+          f.puts format(layout_format, "Table: ",       layout_table)
+          f.puts format(layout_format, "Theme: ",       layout_theme)
           f.puts
           f.puts format(layout_format, "Objects: ", '')
           layout_objects = l.xpath("./*[name()='Object']")                          # find all objects
@@ -546,13 +547,25 @@ module FMPVC
           layout_objects_types.each do |a_type|
             selected_objects = layout_objects.select { |o| o['type'] == a_type }    # get all the objects of a given type
               selected_objects.each do |type_obj| # collect all objects of type
-              # f.puts "    #{type_obj['type']}  - #{type_obj.xpath('./*/Name').text}"
               f.puts format(object_format, type_obj['type'], type_obj.xpath('./*/Name').text) unless type_obj['type'] == "Text"
             end
           end
-          # layout_objects.each { |lo| f.puts lo['type'] }
           f.write(NEWLINE + element2yaml(l))
         end
+      end
+    end
+    
+    def write_themes
+      themes_path                                 = '/FMPReport/File/ThemeCatalog'
+      themes                                      = @report.xpath(themes_path + "/*[name()='Theme']")
+      File.open(@themes_filepath, 'w') do |f|
+        theme_format = "  %6s  %-20s  %-20s  %6s  %-20s  %-20s"
+        f.puts format(theme_format, "id", "Name", "Group", "Version", "Locale", "Internal Name")
+        f.puts format(theme_format, "--", "----", "-----", "-------", "------", "-------------")
+        themes.each do |a_theme|
+          f.puts format(theme_format, a_theme['id'], a_theme['name'], a_theme['group'], a_theme['version'], a_theme['locale'], a_theme['internalName'])
+        end
+        f.write(NEWLINE + element2yaml(themes))
       end
     end
     
