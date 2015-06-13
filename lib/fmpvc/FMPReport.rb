@@ -151,9 +151,8 @@ module FMPVC
           source_type = a_value_list.xpath("./Source").first['value']
           if source_type == "Custom"
             a_value_list.xpath("./CustomValues/Text").each {|t| f.puts t.text}
-          else # elsif source_type == "Field"
-            f.write(NEWLINE + element2yaml(a_value_list))
           end
+          f.write(NEWLINE + element2yaml(a_value_list))
         end
       end
       

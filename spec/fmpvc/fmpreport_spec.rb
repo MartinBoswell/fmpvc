@@ -109,18 +109,25 @@ describe 'FMPReport' do
       end
     end
 
-    describe '#write_value_lists' do
+    describe '#write_value_lists', :focus => true do
+      
+      let (:custom_value_list)            { IO.read(find_path_with_base(@report2.report_dirpath + "/ValueLists/Favorite Roles")) }
+      let (:field_based_value_list)       { IO.read(find_path_with_base(@report2.report_dirpath + "/ValueLists/Role Categories")) }
   
       it "should create a value list file on disk" do
         expect(Dir.glob(@report2.report_dirpath + "/ValueLists/*.txt").count).to be >=3
       end
       it "should create value lists with good content" do
-        value_list_content = IO.read(find_path_with_base(@report2.report_dirpath + "/ValueLists/Favorite Roles"))
-        expect(value_list_content).to match(%r{Randall McMurphy\nLone Watie\n- \n})
+        expect(custom_value_list).to match(%r{Randall McMurphy\nLone Watie\n- \n})
       end
       it "should handle non-custom value lists" do
-        value_list_content = IO.read(find_path_with_base(@report2.report_dirpath + "/ValueLists/Role Categories"))
-        expect(value_list_content).to match(%r{Source: \s+ value: \s+ Field}mx)
+        expect(field_based_value_list).to match(%r{Source: \s+ value: \s+ Field}mx)
+      end
+      it "should have YAML appended to all functions" do
+        expect(custom_value_list).to match(%r{Terry\ Fields \s+ --- \s+ ValueList: \s+ id:\ '3'}mx)
+      end
+      it "should have real YAML" do
+        expect(field_based_value_list).to match(%r{name:\ Role\ Categories \s+ Source: \s+ value:\ Field}mx)
       end
     
     end
