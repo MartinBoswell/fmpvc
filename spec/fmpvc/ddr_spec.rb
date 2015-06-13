@@ -31,6 +31,7 @@ describe 'DDR' do
   
   it "should be able to determine the base directory of the FMP file" do
     expect(ddr1.base_dir).to eq(File.expand_path("./spec/data/test_1/fmp_ddr"))
+    # expect(ddr1.base_dir).to eq("/Users/boswell/Dropbox/Projects/2015/Q1_FMP_versioning/fmp_versioning/spec/data/test_1/fmp_ddr")
   end
   
   
