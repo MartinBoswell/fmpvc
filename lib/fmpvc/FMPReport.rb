@@ -132,6 +132,7 @@ module FMPVC
         sanitized_script_name_id_ext = sanitized_script_name_id + '.txt'
         File.open(this_script_disk_path + "/#{sanitized_script_name_id_ext}", 'w') do |f| 
           a_script.xpath("./StepList/Step/StepText").each {|t| f.puts t.text.gsub(%r{\n},'') } # remove \n from middle of steps
+          f.write(NEWLINE + element2yaml(a_script))
         end
       end
     end
