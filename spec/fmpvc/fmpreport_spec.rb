@@ -135,7 +135,7 @@ describe 'FMPReport' do
     end
     it "should create table files with good content" do
       table_file_content = IO.read(find_path_with_base(report2.report_dirpath + "/Tables/Roles"))
-      expect(table_file_content).to match(%r{     5   _kF_movie_id                Number     Normal})
+      expect(table_file_content).to match(%r{ \s+ 5 \s+ _kF_movie_id \s+ Number \s+ Normal})
       
     end
     it "should create table files with field comments" do

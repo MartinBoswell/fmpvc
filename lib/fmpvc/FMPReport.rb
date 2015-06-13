@@ -163,9 +163,11 @@ module FMPVC
         sanitized_table_name        = fs_sanitize(table_name)
         sanitized_table_name_id     = fs_id(sanitized_table_name, table_id)
         sanitized_table_name_id_ext = sanitized_table_name_id + '.txt'
-        table_format                = "%6d   %-25s   %-10s %-10s   %-50s"
+        table_format                = "%6d   %-25s   %-15s  %-15s   %-50s"
+        table_header_format         = table_format.gsub(%r{d}, 's')
         File.open(@tables_dirpath + "/#{sanitized_table_name_id_ext}", 'w') do |f|
-          f.puts format(table_format, 0, "Field Name", "Data Type", "Field Type", "Comment")
+          f.puts format(table_header_format, "id", "Field Name", "Data Type", "Field Type", "Comment")
+          f.puts format(table_header_format, "--", "----------", "---------", "----------", "-------")
           a_table.xpath("//BaseTable[@name='#{a_table['name']}']/FieldCatalog/*[name()='Field']").each do |t| 
             t_comment = t.xpath("./Comment").text
             f.puts format(table_format, t['id'], t['name'], t['dataType'], t['fieldType'], t_comment)
