@@ -151,9 +151,8 @@ module FMPVC
           source_type = a_value_list.xpath("./Source").first['value']
           if source_type == "Custom"
             a_value_list.xpath("./CustomValues/Text").each {|t| f.puts t.text}
-          else # elsif source_type == "Field"
-            f.write(NEWLINE + element2yaml(a_value_list))
           end
+          f.write(NEWLINE + element2yaml(a_value_list))
         end
       end
       
@@ -162,7 +161,7 @@ module FMPVC
     def write_custom_functions(object_xpath = '/FMPReport/File/CustomFunctionCatalog')
       FileUtils.mkdir_p(@custom_functions_dirpath) unless File.directory?(@custom_functions_dirpath)
       
-      custom_functions = @report.xpath("#{object_xpath}/*[name()='CustomFunction']")
+      custom_functions                        = @report.xpath("#{object_xpath}/*[name()='CustomFunction']")
       custom_functions.each do |a_custom_function|
         custom_function_name                  = a_custom_function['name']
         custom_function_id                    = a_custom_function['id']
@@ -170,7 +169,8 @@ module FMPVC
         sanitized_custom_function_name_id     = fs_id(sanitized_custom_function_name, custom_function_id)
         sanitized_custom_function_name_id_ext = sanitized_custom_function_name_id + '.txt'
         File.open(@custom_functions_dirpath + "/#{sanitized_custom_function_name_id_ext}", 'w') do |f|
-          a_custom_function.xpath("./Calculation").each {|t| f.print t.text}
+          a_custom_function.xpath("./Calculation").each {|t| f.puts t.text}
+          f.write(NEWLINE + element2yaml(a_custom_function))
         end
       end
       
@@ -202,9 +202,9 @@ module FMPVC
 
     def write_accounts
       account_path = '/FMPReport/File/AccountCatalog'
+      account_catalog = @report.xpath(account_path)
       accounts = @report.xpath("#{account_path}/*[name()='Account']")
       File.open(@accounts_filepath, 'w') do |f|
-        yaml_output = YAML_START
         accounts_format        = "%6d  %-25s  %-10s  %-12s  %-20s  %-12s  %-12s  %-50s"
         accounts_header_format = accounts_format.gsub(%r{d}, 's')
         f.puts format(accounts_header_format, "id", "Name", "Status", "Management", "Privilege Set", "Empty Pass?", "Change Pass?", "Description")
@@ -229,17 +229,16 @@ module FMPVC
                     , account_changePasswordOnNextLogin \
                     , account_Description
           )
-          yaml_output += element2yaml(an_account).gsub(%r{\A --- \n}mx, '')
         end
-        f.write(NEWLINE + yaml_output)
+        f.write(NEWLINE + element2yaml(account_catalog))
       end
     end
 
     def write_privilege_sets
-      privilege_set_path = '/FMPReport/File/PrivilegesCatalog'
-      privileges = @report.xpath("#{privilege_set_path}/*[name()='PrivilegeSet']")
+      privilege_set_path          = '/FMPReport/File/PrivilegesCatalog'
+      privilege_sets              = @report.xpath("#{privilege_set_path}")
+      privileges                  = @report.xpath("#{privilege_set_path}/*[name()='PrivilegeSet']")
       File.open(@privileges_filepath, 'w') do |f|
-        yaml_output = YAML_START
         privileges_format        = "%6d  %-25s  %-8s  %-10s  %-15s  %-12s  %-12s  %-12s  %-8s  %-18s %-11s  %-10s   %-12s  %-10s   %-16s  %-10s  %-70s"
         privileges_header_format = privileges_format.gsub(%r{d}, 's')
         f.puts format(privileges_header_format, "id", "Name", "Print?", "Export?", "Manage Ext'd?", "Override?", "Disconnect?", "Password?", "Menus", "Records", "Layouts", "(Creation)", "ValueLists", "(Creation)", "Scripts", "(Creation)", "Description")
@@ -284,19 +283,18 @@ module FMPVC
                     , privilege_set_scripts_creation \
                     , privilege_set_comment \
           )
-          yaml_output += element2yaml(a_privilege_set).gsub(%r{\A --- \n}mx, '')
         end
-        f.write(NEWLINE + yaml_output)
+        f.write(NEWLINE + element2yaml(privilege_sets))
       end
     end
 
     def write_extended_privileges
-      ext_privileges_path = '/FMPReport/File/ExtendedPrivilegeCatalog'
-      ext_privileges = @report.xpath("#{ext_privileges_path}/*[name()='ExtendedPrivilege']")
+      ext_privileges_path                 = '/FMPReport/File/ExtendedPrivilegeCatalog'
+      ext_privilege_catalog               = @report.xpath(ext_privileges_path)
+      ext_privileges                      = @report.xpath("#{ext_privileges_path}/*[name()='ExtendedPrivilege']")
       File.open(@ext_privileges_filepath, 'w') do |f|
-        yaml_output = YAML_START
-        ext_privilege_format        = "%6d  %-20s  %-85s  %-150s"
-        ext_privilege_header_format = ext_privilege_format.gsub(%r{d}, 's')
+        ext_privilege_format              = "%6d  %-20s  %-85s  %-150s"
+        ext_privilege_header_format       = ext_privilege_format.gsub(%r{d}, 's')
         f.puts format(ext_privilege_header_format, "id", "Name", "Description", "Privilege Sets")
         f.puts format(ext_privilege_header_format, "--", "----", "-----------", "--------------")
         ext_privileges.each do |an_ext_privilege|
@@ -312,23 +310,22 @@ module FMPVC
                     , ext_privilege_comment \
                     , ext_privilege_sets \
           )
-          yaml_output += element2yaml(an_ext_privilege).gsub(%r{\A --- \n}mx, '')
         end
-        f.write(NEWLINE + yaml_output)
+        f.write(NEWLINE + element2yaml(ext_privilege_catalog))
       end
     end
     
     def write_relationships
       relationships_path    = '/FMPReport/File/RelationshipGraph'
+      relationship_graph    = @report.xpath("#{relationships_path}")
       tables                = @report.xpath("#{relationships_path}/TableList/*[name()='Table']")
       relationships         = @report.xpath("#{relationships_path}/RelationshipList/*[name()='Relationship']")
       File.open(@relationships_filepath, 'w') do |f|
-        yaml_output = YAML_START
         table_format = "    %-25s  %-25s"
         f.puts "Tables\n"
         f.puts
-        f.puts format(table_format, "Base Table (id)", "Table Occurance (id)")
-        f.puts format(table_format, "---------------", "--------------------")
+        f.puts format(table_format, "Base Table (id)", "Table occurrence (id)")
+        f.puts format(table_format, "---------------", "---------------------")
         f.puts
         tables.each do |a_table|
           table_id                                            = a_table['id']
@@ -336,8 +333,6 @@ module FMPVC
           basetable_id                                        = a_table['baseTableId']
           basetable_name                                      = a_table['baseTable']
           f.puts format(table_format, "#{basetable_name} (#{basetable_id})", "#{table_name} (#{table_id})")
-
-          yaml_output += element2yaml(a_table).gsub(%r{\A --- \n}mx, '')
         end
         f.puts
         relationship_format = "        %-35s  %-15s  %-35s"
@@ -358,10 +353,8 @@ module FMPVC
             right_field_name                                  = right_field['name']
             f.puts format(relationship_format, "#{left_table}::#{left_field_name}", "#{predicate_type}", "#{right_table}::#{right_field_name}")
           end
-          
-          yaml_output += element2yaml(a_relationship).gsub(%r{\A --- \n}mx, '')
         end
-        f.write(NEWLINE + yaml_output)
+        f.write(NEWLINE + element2yaml(relationship_graph))
       end
 
     end
@@ -558,17 +551,16 @@ module FMPVC
     
     def write_themes
       themes_path                                 = '/FMPReport/File/ThemeCatalog'
+      themes_yaml                                 = element2yaml(@report.xpath(themes_path))
       themes                                      = @report.xpath(themes_path + "/*[name()='Theme']")
       File.open(@themes_filepath, 'w') do |f|
         theme_format = "  %6s  %-20s  %-20s  %6s  %-20s  %-20s"
         f.puts format(theme_format, "id", "Name", "Group", "Version", "Locale", "Internal Name")
         f.puts format(theme_format, "--", "----", "-----", "-------", "------", "-------------")
-        yaml_output = YAML_START
         themes.each do |a_theme|
           f.puts format(theme_format, a_theme['id'], a_theme['name'], a_theme['group'], a_theme['version'], a_theme['locale'], a_theme['internalName'])
-          yaml_output += element2yaml(a_theme).gsub(%r{\A --- \n}mx, '')
         end
-        f.write(NEWLINE + yaml_output)
+        f.write(NEWLINE + themes_yaml)
       end
     end
     

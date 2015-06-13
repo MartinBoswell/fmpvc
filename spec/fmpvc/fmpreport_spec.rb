@@ -109,35 +109,50 @@ describe 'FMPReport' do
       end
     end
 
-    describe '#write_value_lists' do
+    describe '#write_value_lists', :focus => true do
+      
+      let (:custom_value_list)            { IO.read(find_path_with_base(@report2.report_dirpath + "/ValueLists/Favorite Roles")) }
+      let (:field_based_value_list)       { IO.read(find_path_with_base(@report2.report_dirpath + "/ValueLists/Role Categories")) }
   
       it "should create a value list file on disk" do
         expect(Dir.glob(@report2.report_dirpath + "/ValueLists/*.txt").count).to be >=3
       end
       it "should create value lists with good content" do
-        value_list_content = IO.read(find_path_with_base(@report2.report_dirpath + "/ValueLists/Favorite Roles"))
-        expect(value_list_content).to match(%r{Randall McMurphy\nLone Watie\n- \n})
+        expect(custom_value_list).to match(%r{Randall McMurphy\nLone Watie\n- \n})
       end
       it "should handle non-custom value lists" do
-        value_list_content = IO.read(find_path_with_base(@report2.report_dirpath + "/ValueLists/Role Categories"))
-        expect(value_list_content).to match(%r{Source: \s+ value: \s+ Field}mx)
+        expect(field_based_value_list).to match(%r{Source: \s+ value: \s+ Field}mx)
+      end
+      it "should have YAML appended to all functions" do
+        expect(custom_value_list).to match(%r{Terry\ Fields \s+ --- \s+ ValueList: \s+ id:\ '3'}mx)
+      end
+      it "should have real YAML" do
+        expect(field_based_value_list).to match(%r{name:\ Role\ Categories \s+ Source: \s+ value:\ Field}mx)
       end
     
     end
 
-    describe '#write_custom_functions' do
+    describe '#write_custom_functions', :focus => false do
+      
+      let (:custom_function_content)      { IO.read(find_path_with_base(@report2.report_dirpath + "/CustomFunctions/ramones_name")) }
   
       it "should create a custom function file on disk" do
         expect(Dir.glob(@report2.report_dirpath + "/CustomFunctions/*.txt").count).to be >=2
         # expect function_list to contain "ramones_name"
       end
       it "should create custom functions with good content" do
-        custom_function_content = IO.read(find_path_with_base(@report2.report_dirpath + "/CustomFunctions/ramones_name"))
+        # custom_function_content = IO.read(find_path_with_base(@report2.report_dirpath + "/CustomFunctions/ramones_name"))
         expect(custom_function_content).to match(%r{actor_first & " Ramone"})
       end
       it "should reproduce the original whitespace formatting" do
         custom_function_content = IO.read(find_path_with_base(@report2.report_dirpath + "/CustomFunctions/alphabet_up_to_letter"))
         expect(custom_function_content).to match(%r{Code\(letter\) = 65 ; "A"})
+      end
+      it "should have YAML" do
+        expect(custom_function_content).to match(%r{parameters:\ actor_first \s+ name:\ ramones_name}mx)
+      end
+      it "should have real YAML content" do 
+        expect(custom_function_content).to match(%r{--- \s+ CustomFunction: \s+ id:\ '1' \s+ functionArity:\ '1'}mx)
       end
     
     end
@@ -164,7 +179,7 @@ describe 'FMPReport' do
     
     end
   
-    describe '#write_accounts' do
+    describe '#write_accounts', :focus => false do
     
       let (:accounts_file_content)      { IO.read(find_path_with_base(@report2.report_dirpath + "/Accounts")) }
     
@@ -175,9 +190,12 @@ describe 'FMPReport' do
         expect(accounts_file_content).to match(%r{ \s+ 4 \s+ Chapman \s+ Active \s+ FileMaker \s+ \[Data \s+ Entry \s+ Only\] \s+ False \s+ False \s+ Graham \s+ Chapman}mx) # table
         expect(accounts_file_content).to match(%r{id:\ '2' \s+ privilegeSet:\ "\[Full\ Access\]"}mx) # yaml
       end
+      it "should have good content in accounts file" do
+        expect(accounts_file_content).to match(%r{AccountCatalog: \s+ Account: \s+ -\ id:\ '1' \s+ privilegeSet:}mx) 
+      end
     end
   
-    describe '#write_privilege_sets' do
+    describe '#write_privilege_sets', :focus => false do
 
       let (:privileges_file_content)      { IO.read(find_path_with_base(@report2.report_dirpath + "/PrivilegeSets")) }
     
@@ -186,11 +204,14 @@ describe 'FMPReport' do
       end
       it "should have good content in privileges file" do
         expect(privileges_file_content).to match(%r{\[Full\ Access\] \s+ True \s+ True \s+ True \s+ True \s+ False \s+ True \s+ All \s+ CreateEditDelete \s+ Modifiable \s+ True \s+ Modifiable \s+ True \s+ Modifiable \s+ True \s+ access\ to\ everything}mx) # table
-        expect(privileges_file_content).to match(%r{PrivilegeSet: \s+ comment: \s+ access\ to\ everything \s+ id: \s+ '\d+'}mx) # yaml
+        expect(privileges_file_content).to match(%r{PrivilegeSet: \s+ -\ comment: \s+ access\ to\ everything \s+ id: \s+ '\d+'}mx) # yaml
+      end
+      it "should have real YAML" do
+        expect(privileges_file_content).to match(%r{--- \s+ PrivilegesCatalog: \s+ PrivilegeSet: \s+ -\ comment:\ access\ to\ everything \s+ id:\ '1'}mx)
       end
     end
   
-    describe '#write_extended_privileges' do
+    describe '#write_extended_privileges', :focus => false do
 
       let (:ext_privileges_file_content)      { IO.read(find_path_with_base(@report2.report_dirpath + "/ExtendedPrivileges")) }
     
@@ -200,6 +221,9 @@ describe 'FMPReport' do
       it "should have good content in privileges file" do
         expect(ext_privileges_file_content).to match(%r{\d \s+ fmxml \s+ Access\ via\ XML\ Web\ Publishing\ -\ FMS\ only}mx) # table
         expect(ext_privileges_file_content).to match(%r{comment: \s+ Access\ via\ XML\ Web\ Publishing\ -\ FMS\ only \s+ name: \s+ fmxml}mx) # yaml
+      end
+      it "should have real YAML" do
+        expect(ext_privileges_file_content).to match(%r{ExtendedPrivilegeCatalog: \s+ ExtendedPrivilege: \s+ -\ id:\ '1' \s+ comment:\ Access\ via}mx)
       end
     end
   
@@ -219,6 +243,10 @@ describe 'FMPReport' do
       it "should list relationships between TOs" do 
         expect(relationships_file_content).to match(%r{Roles::_kF_movie_id \s+ Equal \s+ Movies::_id}mx)
       end
+      it "should display real YAML" do
+        expect(relationships_file_content).to match(%r{--- \s+ RelationshipGraph: \s+ TableList: \s+ Table: \s+ -\ id:\ '1065090'}mx)
+      end
+      
         
     end
   
@@ -352,6 +380,11 @@ describe 'FMPReport' do
       it "should list the included themes" do
         expect(themes_file_content).to match(%r{01 \s+ Enlightened \s+ Aspire \s+ 5 \s+ en \s+ com\.filemaker\.theme\.enlightened}mx)
       end
+      it "should have real yaml" do
+        expect(themes_file_content).to match(%r{--- \s+ ThemeCatalog: \s+ Theme: \s+ group:\ Aspire}mx)
+      end
+      it "should have good yaml for two themes"
+        # expect(themes_file_content).to match(%r{--- \s+ ThemeCatalog: \s+ Theme: \s+ -\ group:\ Aspire}mx)
       
     end
     
