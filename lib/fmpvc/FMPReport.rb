@@ -563,10 +563,12 @@ module FMPVC
         theme_format = "  %6s  %-20s  %-20s  %6s  %-20s  %-20s"
         f.puts format(theme_format, "id", "Name", "Group", "Version", "Locale", "Internal Name")
         f.puts format(theme_format, "--", "----", "-----", "-------", "------", "-------------")
+        yaml_output = YAML_START
         themes.each do |a_theme|
           f.puts format(theme_format, a_theme['id'], a_theme['name'], a_theme['group'], a_theme['version'], a_theme['locale'], a_theme['internalName'])
+          yaml_output += element2yaml(a_theme).gsub(%r{\A --- \n}mx, '')
         end
-        f.write(NEWLINE + element2yaml(themes))
+        f.write(NEWLINE + yaml_output)
       end
     end
     
