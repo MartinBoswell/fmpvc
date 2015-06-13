@@ -1,5 +1,4 @@
 require 'rubygems'
-require 'factory_girl'
 
 # helper to load all of the classes for rspec tests
 Dir.glob(File.dirname(__FILE__) + "/../lib/**/*.rb" ).each do |f|
@@ -13,8 +12,6 @@ RSpec.configure do |config|
     c.syntax = [:expect, :should] # add :should if we have to
   end
   
-  config.include FactoryGirl::Syntax::Methods
-
 end
 
 # Facilitate file matching w/out regard for id and extension (which can easily change)
