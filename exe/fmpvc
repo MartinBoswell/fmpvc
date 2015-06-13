@@ -11,18 +11,24 @@ ddr = DDR.new(ddr_dir)
 puts "done."
 
 # process FMPReport files
-print "Create FMPReports (and their on-disk products)..."
-ddr.process_reportfiles
+print "Create FMPReports..."
+ddr.process_reports
+puts "done."
+
+# write them to disk
+print "Write reports to disk..."
+ddr.write_reports
 puts "done."
 
 # create a tree file
 require 'mkmf'
 module MakeMakefile::Logging
-  @logfile = File::NULL
+  # don't let MakeMake leave extraneous logs
+  @logfile = File::NULL    
 end 
 tree_command = find_executable 'tree'
 if tree_command
-   puts "Creating tree.txt"
+   puts "Creating tree.txt..."
    `#{tree_command} -F > tree.txt`
 end
 

@@ -36,10 +36,11 @@ describe 'FMPReport' do
         report_file = 'Movies_fmp12.xml'
         @ddr1 = double('ddr', :base_dir => :'./spec/data/test_1/fmp_ddr/') 
         @report1 = FMPReport.new(report_file, @ddr1) 
+        @report1.write_all_objects
 
         @ddr2 = double('ddr', :base_dir => :'./spec/data/test_2/fmp_ddr/') 
         @report2 = FMPReport.new(report_file, @ddr2) 
-        
+        @report2.write_all_objects
       end
     end
     

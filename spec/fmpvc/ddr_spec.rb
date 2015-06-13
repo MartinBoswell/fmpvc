@@ -4,9 +4,8 @@ include FMPVC
 describe 'DDR' do
   
   let (:summary_dir) { './spec/data/test_1/fmp_ddr' }
-  let (:ddr1) { DDR.new(summary_dir) }
-
-  let (:movie_xml1) { './spec/data/test_1/fmp_ddr/Movies_fmp12.xml'}
+  let (:ddr1)        { DDR.new(summary_dir) }
+  let (:movie_xml1)  { './spec/data/test_1/fmp_ddr/Movies_fmp12.xml'}
   
   it "should read a Summary.xml from disk" do
     expect(ddr1).to be_instance_of(DDR)
@@ -37,7 +36,7 @@ describe 'DDR' do
     expect(ddr1.xml_files.first).to match('Movies_fmp12.xml')
   end
   it "should generate the FMPReports itself on request" do
-    expect(ddr1.process_reportfiles.first.class).to be FMPVC::FMPReport
+    expect(ddr1.process_reports.first.class).to be FMPVC::FMPReport
   end
   
   it "should write a Summary file with generation details"
