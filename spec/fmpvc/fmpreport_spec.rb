@@ -133,7 +133,7 @@ describe 'FMPReport' do
     
     end
 
-    describe '#write_custom_functions', :focus => true do
+    describe '#write_custom_functions', :focus => false do
       
       let (:custom_function_content)      { IO.read(find_path_with_base(@report2.report_dirpath + "/CustomFunctions/ramones_name")) }
   
@@ -212,7 +212,7 @@ describe 'FMPReport' do
       end
     end
   
-    describe '#write_extended_privileges', :focus => false do
+    describe '#write_extended_privileges', :focus => true do
 
       let (:ext_privileges_file_content)      { IO.read(find_path_with_base(@report2.report_dirpath + "/ExtendedPrivileges")) }
     

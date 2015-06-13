@@ -30,18 +30,20 @@ module FMPVC
       # @scripts_dirpath              = @report_dirpath + "/Scripts"
       # @value_lists_dirpath          = @report_dirpath + "/ValueLists"
       # @custom_functions_dirpath     = @report_dirpath + "/CustomFunctions"
-      @accounts_filepath            = @report_dirpath + "/Accounts.txt"
-      @privileges_filepath          = @report_dirpath + "/PrivilegeSets.txt"
-      @ext_privileges_filepath      = @report_dirpath + "/ExtendedPrivileges.txt"
-      @relationships_filepath       = @report_dirpath + "/Relationships.txt"
-      @menu_sets_dirpath            = @report_dirpath + "/CustomMenuSets"
-      @menus_dirpath                = @report_dirpath + "/CustomMenus"
+      # @accounts_filepath            = @report_dirpath + "/Accounts.txt"
+      # @privileges_filepath          = @report_dirpath + "/PrivilegeSets.txt"
+      # @ext_privileges_filepath      = @report_dirpath + "/ExtendedPrivileges.txt"
+      # @relationships_filepath       = @report_dirpath + "/Relationships.txt"
       @file_access_filepath         = @report_dirpath + "/FileAccess.txt"
       @data_sources_filepath        = @report_dirpath + "/ExternalDataSources.txt"
       @file_options_filepath        = @report_dirpath + "/Options.txt"
-      @layouts_dirpath              = @report_dirpath + "/Layouts"
+
+      @menu_sets_dirpath            = @report_dirpath + "/CustomMenuSets"
+      @menus_dirpath                = @report_dirpath + "/CustomMenus"
       @themes_filepath              = @report_dirpath + "/Themes.txt"
       
+      @layouts_dirpath              = @report_dirpath + "/Layouts"
+
       self.parse
       self.clean_dir
       self.write_dir
@@ -78,16 +80,31 @@ module FMPVC
       # puts "Accounts content: #{@accounts.first[:content]}"
       write_obj_to_disk(@accounts, @report_dirpath + "/Accounts.txt")
       
-      self.write_privilege_sets
-      self.write_extended_privileges
-      self.write_relationships
-      self.write_menu_sets
-      self.write_menus
+      # self.write_privilege_sets
+      @privileges = parse_fms_obj("/FMPReport/File/PrivilegesCatalog", "/*[name()='PrivilegeSet']", @privileges_content, true)
+      write_obj_to_disk(@privileges, @report_dirpath + "/PrivilegeSets.txt")
+      
+      # self.write_extended_privileges
+      @extended_privileges = parse_fms_obj("/FMPReport/File/ExtendedPrivilegeCatalog", "/*[name()='ExtendedPrivilege']", @extended_priviledge_content, true)
+      write_obj_to_disk(@extended_privileges, @report_dirpath + "/ExtendedPrivileges.txt")
+
+      # @ = parse_fms_obj(, , , true)
+      # write_obj_to_disk(, @report_dirpath + )
+      
+      # self.write_relationships
+      @relationships = parse_fms_obj("/FMPReport/File/RelationshipGraph", "/RelationshipList/*[name()='Relationship']", @relationships_content, true)
+      # puts "Relationships: #{@relationships.inspect}"
+      write_obj_to_disk(@relationships, @report_dirpath + "/Relationships.txt")
+
       self.write_file_access
       self.write_external_data_sources
       self.write_file_options
-      self.write_layouts
+
+      self.write_menu_sets
+      self.write_menus
       self.write_themes
+
+      self.write_layouts
       
     end
 
@@ -133,6 +150,11 @@ module FMPVC
   		element_hash						= Hash.from_xml(element_xml)
   		element_yaml						= element_hash.to_yaml
     end
+    
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
     
     def define_content_procs
       
@@ -201,21 +223,139 @@ module FMPVC
         content
       end
       
+      @privileges_content = Proc.new do |privileges|
+        content = ''
+        privileges_format        = "%6d  %-25s  %-8s  %-10s  %-15s  %-12s  %-12s  %-12s  %-8s  %-18s %-11s  %-10s   %-12s  %-10s   %-16s  %-10s  %-70s"
+        privileges_header_format = privileges_format.gsub(%r{d}, 's')
+        content += format(privileges_header_format, "id", "Name", "Print?", "Export?", "Manage Ext'd?", "Override?", "Disconnect?", "Password?", "Menus", "Records", "Layouts", "(Creation)", "ValueLists", "(Creation)", "Scripts", "(Creation)", "Description") + NEWLINE
+        content += format(privileges_header_format, "--", "----", "------", "-------", "-------------", "---------", "-----------", "---------", "-----", "-------", "-------", "----------", "----------", "----------", "-------", "----------", "-----------") + NEWLINE
+        privileges.each do |a_privilege_set|
+          privilege_set_id                                    = a_privilege_set['id']
+          privilege_set_name                                  = a_privilege_set['name']
+          privilege_set_comment                               = a_privilege_set['comment']
+          privilege_set_printing                              = a_privilege_set['printing']
+          privilege_set_exporting                             = a_privilege_set['exporting']
+          privilege_set_managedExtended                       = a_privilege_set['managedExtended']
+          privilege_set_overrideValidationWarning             = a_privilege_set['overrideValidationWarning']
+          privilege_set_idleDisconnect                        = a_privilege_set['idleDisconnect']
+          privilege_set_allowModifyPassword                   = a_privilege_set['allowModifyPassword']
+          privilege_set_menu                                  = a_privilege_set['menu']
+
+          privilege_set_records_value                         = a_privilege_set.xpath('./Records').first['value']
+          privilege_set_layouts_value                         = a_privilege_set.xpath('./Layouts').first['value']
+          privilege_set_layouts_creation                      = a_privilege_set.xpath('./Layouts').first['allowCreation']
+          privilege_set_valuelists_value                      = a_privilege_set.xpath('./ValueLists').first['value']
+          privilege_set_valuelists_creation                   = a_privilege_set.xpath('./ValueLists').first['allowCreation']
+          privilege_set_scripts_value                         = a_privilege_set.xpath('./Scripts').first['value']
+          privilege_set_scripts_creation                      = a_privilege_set.xpath('./Scripts').first['allowCreation']
+          
+          content += format(
+                      privileges_format \
+                    , privilege_set_id \
+                    , privilege_set_name \
+                    , privilege_set_printing \
+                    , privilege_set_exporting \
+                    , privilege_set_managedExtended \
+                    , privilege_set_overrideValidationWarning \
+                    , privilege_set_idleDisconnect \
+                    , privilege_set_allowModifyPassword \
+                    , privilege_set_menu \
+                    , privilege_set_records_value \
+                    , privilege_set_layouts_value \
+                    , privilege_set_layouts_creation \
+                    , privilege_set_valuelists_value \
+                    , privilege_set_valuelists_creation \
+                    , privilege_set_scripts_value \
+                    , privilege_set_scripts_creation \
+                    , privilege_set_comment \
+          ) + NEWLINE
+        end
+        content
+      end
       
+      @extended_priviledge_content = Proc.new do |ext_privileges|
+        content = ''
+        ext_privilege_format              = "%6d  %-20s  %-85s  %-150s"
+        ext_privilege_header_format       = ext_privilege_format.gsub(%r{d}, 's')
+        content += format(ext_privilege_header_format, "id", "Name", "Description", "Privilege Sets")
+        content += format(ext_privilege_header_format, "--", "----", "-----------", "--------------")
+        ext_privileges.each do |an_ext_privilege|
+          ext_privilege_id                                    = an_ext_privilege['id']
+          ext_privilege_name                                  = an_ext_privilege['name']
+          ext_privilege_comment                               = an_ext_privilege['comment']
+          ext_privilege_sets                                  = an_ext_privilege.xpath('./PrivilegeSetList/*[name()="PrivilegeSet"]').map {|s| s['name']}.join(", ")
+
+          content += format(
+                      ext_privilege_format \
+                    , ext_privilege_id \
+                    , ext_privilege_name \
+                    , ext_privilege_comment \
+                    , ext_privilege_sets \
+          ) + NEWLINE
+        end
+        content
+      end
       
-      
+      @relationships_content = Proc.new do |relationships|
+        content = ''
+        
+        tables = @report.xpath("/FMPReport/File/RelationshipGraph/TableList/*[name()='Table']")
+        table_format = "    %-25s  %-25s"
+        content +="Tables\n"
+        content += NEWLINE
+        content +=format(table_format, "Base Table (id)", "Table occurrence (id)") + NEWLINE
+        content +=format(table_format, "---------------", "---------------------") + NEWLINE
+        content += NEWLINE
+        tables.each do |a_table|
+          table_id                                            = a_table['id']
+          table_name                                          = a_table['name']
+          basetable_id                                        = a_table['baseTableId']
+          basetable_name                                      = a_table['baseTable']
+          content +=format(table_format, "#{basetable_name} (#{basetable_id})", "#{table_name} (#{table_id})") + NEWLINE
+        end
+        content += NEWLINE
+
+        relationship_format = "        %-35s  %-15s  %-35s"
+        content +="Relationships" + NEWLINE
+        relationships.each do |a_relationship|
+          content += NEWLINE
+          content += format("    Relationship: %-4d", a_relationship['id']) + NEWLINE
+          predicates = a_relationship.xpath('./JoinPredicateList/*[name()="JoinPredicate"]')
+          predicates.each do |a_predicate|
+            predicate_type                                    = a_predicate['type']
+
+            left_field                                        = a_predicate.xpath('./LeftField/*[name()="Field"]').first
+            left_table                                        = left_field['table']
+            left_field_name                                   = left_field['name']
+
+            right_field                                       = a_predicate.xpath('./RightField/*[name()="Field"]').first
+            right_table                                       = right_field['table']
+            right_field_name                                  = right_field['name']
+            content += format(relationship_format, "#{left_table}::#{left_field_name}", "#{predicate_type}", "#{right_table}::#{right_field_name}") + NEWLINE
+          end
+        end
+        content
+      end
       
     end
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
+    ##########################################################################################################
 
     def parse_fms_obj(object_base, object_nodes, obj_content, one_file = false)
       objects_parsed = Array.new
       objects = @report.xpath("#{object_base}#{object_nodes}")
       objects.each do |an_obj|
-        obj_name                    = an_obj['name'] 
         obj_id                      = an_obj['id']
-        sanitized_obj_name          = fs_sanitize(obj_name)
-        sanitized_obj_name_id       = fs_id(sanitized_obj_name, obj_id)
-        sanitized_obj_name_id_ext   = sanitized_obj_name_id + '.txt'
+        if one_file
+          sanitized_obj_name_id_ext   = nil
+        else
+          obj_name                    = an_obj['name'] 
+          sanitized_obj_name          = fs_sanitize(obj_name)
+          sanitized_obj_name_id       = fs_id(sanitized_obj_name, obj_id)
+          sanitized_obj_name_id_ext   = sanitized_obj_name_id + '.txt'
+        end
         
         obj_parsed = {
             :name        => sanitized_obj_name_id_ext                        \
@@ -327,23 +467,23 @@ module FMPVC
     #
     # end
     
-    def write_custom_functions(object_xpath = '/FMPReport/File/CustomFunctionCatalog')
-      FileUtils.mkdir_p(@custom_functions_dirpath) unless File.directory?(@custom_functions_dirpath)
-      
-      custom_functions                        = @report.xpath("#{object_xpath}/*[name()='CustomFunction']")
-      custom_functions.each do |a_custom_function|
-        custom_function_name                  = a_custom_function['name']
-        custom_function_id                    = a_custom_function['id']
-        sanitized_custom_function_name        = fs_sanitize(custom_function_name)
-        sanitized_custom_function_name_id     = fs_id(sanitized_custom_function_name, custom_function_id)
-        sanitized_custom_function_name_id_ext = sanitized_custom_function_name_id + '.txt'
-        File.open(@custom_functions_dirpath + "/#{sanitized_custom_function_name_id_ext}", 'w') do |f|
-          a_custom_function.xpath("./Calculation").each {|t| f.puts t.text}
-          f.write(NEWLINE + element2yaml(a_custom_function))
-        end
-      end
-      
-    end
+    # def write_custom_functions(object_xpath = '/FMPReport/File/CustomFunctionCatalog')
+    #   FileUtils.mkdir_p(@custom_functions_dirpath) unless File.directory?(@custom_functions_dirpath)
+    #
+    #   custom_functions                        = @report.xpath("#{object_xpath}/*[name()='CustomFunction']")
+    #   custom_functions.each do |a_custom_function|
+    #     custom_function_name                  = a_custom_function['name']
+    #     custom_function_id                    = a_custom_function['id']
+    #     sanitized_custom_function_name        = fs_sanitize(custom_function_name)
+    #     sanitized_custom_function_name_id     = fs_id(sanitized_custom_function_name, custom_function_id)
+    #     sanitized_custom_function_name_id_ext = sanitized_custom_function_name_id + '.txt'
+    #     File.open(@custom_functions_dirpath + "/#{sanitized_custom_function_name_id_ext}", 'w') do |f|
+    #       a_custom_function.xpath("./Calculation").each {|t| f.puts t.text}
+    #       f.write(NEWLINE + element2yaml(a_custom_function))
+    #     end
+    #   end
+    #
+    # end
     
     # def write_tables(object_xpath = '/FMPReport/File/BaseTableCatalog')
     #   FileUtils.mkdir_p(@tables_dirpath) unless File.directory?(@tables_dirpath)
@@ -369,164 +509,164 @@ module FMPVC
     #   end
     # end
 
-    def write_accounts
-      account_path = '/FMPReport/File/AccountCatalog'
-      account_catalog = @report.xpath(account_path)
-      accounts = @report.xpath("#{account_path}/*[name()='Account']")
-      File.open(@accounts_filepath, 'w') do |f|
-        accounts_format        = "%6d  %-25s  %-10s  %-12s  %-20s  %-12s  %-12s  %-50s"
-        accounts_header_format = accounts_format.gsub(%r{d}, 's')
-        f.puts format(accounts_header_format, "id", "Name", "Status", "Management", "Privilege Set", "Empty Pass?", "Change Pass?", "Description")
-        f.puts format(accounts_header_format, "--", "----", "------", "----------", "-------------", "-----------", "------------", "-----------")
-        accounts.each do |an_account|
-          account_name                                = an_account['name']
-          account_id                                  = an_account['id']
-          account_privilegeSet                        = an_account['privilegeSet']
-          account_emptyPassword                       = an_account['emptyPassword']
-          account_changePasswordOnNextLogin           = an_account['changePasswordOnNextLogin']
-          account_managedBy                           = an_account['managedBy']
-          account_status                              = an_account['status']
-          account_Description                         = an_account.xpath('./Description').text
-          f.puts format(    
-                      accounts_format \
-                    , account_id \
-                    , account_name \
-                    , account_status \
-                    , account_managedBy \
-                    , account_privilegeSet \
-                    , account_emptyPassword \
-                    , account_changePasswordOnNextLogin \
-                    , account_Description
-          )
-        end
-        f.write(NEWLINE + element2yaml(account_catalog))
-      end
-    end
+    # def write_accounts
+    #   account_path = '/FMPReport/File/AccountCatalog'
+    #   account_catalog = @report.xpath(account_path)
+    #   accounts = @report.xpath("#{account_path}/*[name()='Account']")
+    #   File.open(@accounts_filepath, 'w') do |f|
+    #     accounts_format        = "%6d  %-25s  %-10s  %-12s  %-20s  %-12s  %-12s  %-50s"
+    #     accounts_header_format = accounts_format.gsub(%r{d}, 's')
+    #     f.puts format(accounts_header_format, "id", "Name", "Status", "Management", "Privilege Set", "Empty Pass?", "Change Pass?", "Description")
+    #     f.puts format(accounts_header_format, "--", "----", "------", "----------", "-------------", "-----------", "------------", "-----------")
+    #     accounts.each do |an_account|
+    #       account_name                                = an_account['name']
+    #       account_id                                  = an_account['id']
+    #       account_privilegeSet                        = an_account['privilegeSet']
+    #       account_emptyPassword                       = an_account['emptyPassword']
+    #       account_changePasswordOnNextLogin           = an_account['changePasswordOnNextLogin']
+    #       account_managedBy                           = an_account['managedBy']
+    #       account_status                              = an_account['status']
+    #       account_Description                         = an_account.xpath('./Description').text
+    #       f.puts format(
+    #                   accounts_format \
+    #                 , account_id \
+    #                 , account_name \
+    #                 , account_status \
+    #                 , account_managedBy \
+    #                 , account_privilegeSet \
+    #                 , account_emptyPassword \
+    #                 , account_changePasswordOnNextLogin \
+    #                 , account_Description
+    #       )
+    #     end
+    #     f.write(NEWLINE + element2yaml(account_catalog))
+    #   end
+    # end
 
-    def write_privilege_sets
-      privilege_set_path          = '/FMPReport/File/PrivilegesCatalog'
-      privilege_sets              = @report.xpath("#{privilege_set_path}")
-      privileges                  = @report.xpath("#{privilege_set_path}/*[name()='PrivilegeSet']")
-      File.open(@privileges_filepath, 'w') do |f|
-        privileges_format        = "%6d  %-25s  %-8s  %-10s  %-15s  %-12s  %-12s  %-12s  %-8s  %-18s %-11s  %-10s   %-12s  %-10s   %-16s  %-10s  %-70s"
-        privileges_header_format = privileges_format.gsub(%r{d}, 's')
-        f.puts format(privileges_header_format, "id", "Name", "Print?", "Export?", "Manage Ext'd?", "Override?", "Disconnect?", "Password?", "Menus", "Records", "Layouts", "(Creation)", "ValueLists", "(Creation)", "Scripts", "(Creation)", "Description")
-        f.puts format(privileges_header_format, "--", "----", "------", "-------", "-------------", "---------", "-----------", "---------", "-----", "-------", "-------", "----------", "----------", "----------", "-------", "----------", "-----------")
-        privileges.each do |a_privilege_set|
-          privilege_set_id                                    = a_privilege_set['id']
-          privilege_set_name                                  = a_privilege_set['name']
-          privilege_set_comment                               = a_privilege_set['comment']
-          privilege_set_printing                              = a_privilege_set['printing']
-          privilege_set_exporting                             = a_privilege_set['exporting']
-          privilege_set_managedExtended                       = a_privilege_set['managedExtended']
-          privilege_set_overrideValidationWarning             = a_privilege_set['overrideValidationWarning']
-          privilege_set_idleDisconnect                        = a_privilege_set['idleDisconnect']
-          privilege_set_allowModifyPassword                   = a_privilege_set['allowModifyPassword']
-          privilege_set_menu                                  = a_privilege_set['menu']
+    # def write_privilege_sets
+    #   privilege_set_path          = '/FMPReport/File/PrivilegesCatalog'
+    #   privilege_sets              = @report.xpath("#{privilege_set_path}")
+    #   privileges                  = @report.xpath("#{privilege_set_path}/*[name()='PrivilegeSet']")
+    #   File.open(@privileges_filepath, 'w') do |f|
+    #     privileges_format        = "%6d  %-25s  %-8s  %-10s  %-15s  %-12s  %-12s  %-12s  %-8s  %-18s %-11s  %-10s   %-12s  %-10s   %-16s  %-10s  %-70s"
+    #     privileges_header_format = privileges_format.gsub(%r{d}, 's')
+    #     f.puts format(privileges_header_format, "id", "Name", "Print?", "Export?", "Manage Ext'd?", "Override?", "Disconnect?", "Password?", "Menus", "Records", "Layouts", "(Creation)", "ValueLists", "(Creation)", "Scripts", "(Creation)", "Description")
+    #     f.puts format(privileges_header_format, "--", "----", "------", "-------", "-------------", "---------", "-----------", "---------", "-----", "-------", "-------", "----------", "----------", "----------", "-------", "----------", "-----------")
+    #     privileges.each do |a_privilege_set|
+    #       privilege_set_id                                    = a_privilege_set['id']
+    #       privilege_set_name                                  = a_privilege_set['name']
+    #       privilege_set_comment                               = a_privilege_set['comment']
+    #       privilege_set_printing                              = a_privilege_set['printing']
+    #       privilege_set_exporting                             = a_privilege_set['exporting']
+    #       privilege_set_managedExtended                       = a_privilege_set['managedExtended']
+    #       privilege_set_overrideValidationWarning             = a_privilege_set['overrideValidationWarning']
+    #       privilege_set_idleDisconnect                        = a_privilege_set['idleDisconnect']
+    #       privilege_set_allowModifyPassword                   = a_privilege_set['allowModifyPassword']
+    #       privilege_set_menu                                  = a_privilege_set['menu']
+    #
+    #       privilege_set_records_value                         = a_privilege_set.xpath('./Records').first['value']
+    #       privilege_set_layouts_value                         = a_privilege_set.xpath('./Layouts').first['value']
+    #       privilege_set_layouts_creation                      = a_privilege_set.xpath('./Layouts').first['allowCreation']
+    #       privilege_set_valuelists_value                      = a_privilege_set.xpath('./ValueLists').first['value']
+    #       privilege_set_valuelists_creation                   = a_privilege_set.xpath('./ValueLists').first['allowCreation']
+    #       privilege_set_scripts_value                         = a_privilege_set.xpath('./Scripts').first['value']
+    #       privilege_set_scripts_creation                      = a_privilege_set.xpath('./Scripts').first['allowCreation']
+    #
+    #       f.puts format(
+    #                   privileges_format \
+    #                 , privilege_set_id \
+    #                 , privilege_set_name \
+    #                 , privilege_set_printing \
+    #                 , privilege_set_exporting \
+    #                 , privilege_set_managedExtended \
+    #                 , privilege_set_overrideValidationWarning \
+    #                 , privilege_set_idleDisconnect \
+    #                 , privilege_set_allowModifyPassword \
+    #                 , privilege_set_menu \
+    #                 , privilege_set_records_value \
+    #                 , privilege_set_layouts_value \
+    #                 , privilege_set_layouts_creation \
+    #                 , privilege_set_valuelists_value \
+    #                 , privilege_set_valuelists_creation \
+    #                 , privilege_set_scripts_value \
+    #                 , privilege_set_scripts_creation \
+    #                 , privilege_set_comment \
+    #       )
+    #     end
+    #     f.write(NEWLINE + element2yaml(privilege_sets))
+    #   end
+    # end
 
-          privilege_set_records_value                         = a_privilege_set.xpath('./Records').first['value']
-          privilege_set_layouts_value                         = a_privilege_set.xpath('./Layouts').first['value']
-          privilege_set_layouts_creation                      = a_privilege_set.xpath('./Layouts').first['allowCreation']
-          privilege_set_valuelists_value                      = a_privilege_set.xpath('./ValueLists').first['value']
-          privilege_set_valuelists_creation                   = a_privilege_set.xpath('./ValueLists').first['allowCreation']
-          privilege_set_scripts_value                         = a_privilege_set.xpath('./Scripts').first['value']
-          privilege_set_scripts_creation                      = a_privilege_set.xpath('./Scripts').first['allowCreation']
-          
-          f.puts format(
-                      privileges_format \
-                    , privilege_set_id \
-                    , privilege_set_name \
-                    , privilege_set_printing \
-                    , privilege_set_exporting \
-                    , privilege_set_managedExtended \
-                    , privilege_set_overrideValidationWarning \
-                    , privilege_set_idleDisconnect \
-                    , privilege_set_allowModifyPassword \
-                    , privilege_set_menu \
-                    , privilege_set_records_value \
-                    , privilege_set_layouts_value \
-                    , privilege_set_layouts_creation \
-                    , privilege_set_valuelists_value \
-                    , privilege_set_valuelists_creation \
-                    , privilege_set_scripts_value \
-                    , privilege_set_scripts_creation \
-                    , privilege_set_comment \
-          )
-        end
-        f.write(NEWLINE + element2yaml(privilege_sets))
-      end
-    end
-
-    def write_extended_privileges
-      ext_privileges_path                 = '/FMPReport/File/ExtendedPrivilegeCatalog'
-      ext_privilege_catalog               = @report.xpath(ext_privileges_path)
-      ext_privileges                      = @report.xpath("#{ext_privileges_path}/*[name()='ExtendedPrivilege']")
-      File.open(@ext_privileges_filepath, 'w') do |f|
-        ext_privilege_format              = "%6d  %-20s  %-85s  %-150s"
-        ext_privilege_header_format       = ext_privilege_format.gsub(%r{d}, 's')
-        f.puts format(ext_privilege_header_format, "id", "Name", "Description", "Privilege Sets")
-        f.puts format(ext_privilege_header_format, "--", "----", "-----------", "--------------")
-        ext_privileges.each do |an_ext_privilege|
-          ext_privilege_id                                    = an_ext_privilege['id']
-          ext_privilege_name                                  = an_ext_privilege['name']
-          ext_privilege_comment                               = an_ext_privilege['comment']
-          ext_privilege_sets                                  = an_ext_privilege.xpath('./PrivilegeSetList/*[name()="PrivilegeSet"]').map {|s| s['name']}.join(", ")
-
-          f.puts format(
-                      ext_privilege_format \
-                    , ext_privilege_id \
-                    , ext_privilege_name \
-                    , ext_privilege_comment \
-                    , ext_privilege_sets \
-          )
-        end
-        f.write(NEWLINE + element2yaml(ext_privilege_catalog))
-      end
-    end
+    # def write_extended_privileges
+    #   ext_privileges_path                 = '/FMPReport/File/ExtendedPrivilegeCatalog'
+    #   ext_privilege_catalog               = @report.xpath(ext_privileges_path)
+    #   ext_privileges                      = @report.xpath("#{ext_privileges_path}/*[name()='ExtendedPrivilege']")
+    #   File.open(@ext_privileges_filepath, 'w') do |f|
+    #     ext_privilege_format              = "%6d  %-20s  %-85s  %-150s"
+    #     ext_privilege_header_format       = ext_privilege_format.gsub(%r{d}, 's')
+    #     f.puts format(ext_privilege_header_format, "id", "Name", "Description", "Privilege Sets")
+    #     f.puts format(ext_privilege_header_format, "--", "----", "-----------", "--------------")
+    #     ext_privileges.each do |an_ext_privilege|
+    #       ext_privilege_id                                    = an_ext_privilege['id']
+    #       ext_privilege_name                                  = an_ext_privilege['name']
+    #       ext_privilege_comment                               = an_ext_privilege['comment']
+    #       ext_privilege_sets                                  = an_ext_privilege.xpath('./PrivilegeSetList/*[name()="PrivilegeSet"]').map {|s| s['name']}.join(", ")
+    #
+    #       f.puts format(
+    #                   ext_privilege_format \
+    #                 , ext_privilege_id \
+    #                 , ext_privilege_name \
+    #                 , ext_privilege_comment \
+    #                 , ext_privilege_sets \
+    #       )
+    #     end
+    #     f.write(NEWLINE + element2yaml(ext_privilege_catalog))
+    #   end
+    # end
     
-    def write_relationships
-      relationships_path    = '/FMPReport/File/RelationshipGraph'
-      relationship_graph    = @report.xpath("#{relationships_path}")
-      tables                = @report.xpath("#{relationships_path}/TableList/*[name()='Table']")
-      relationships         = @report.xpath("#{relationships_path}/RelationshipList/*[name()='Relationship']")
-      File.open(@relationships_filepath, 'w') do |f|
-        table_format = "    %-25s  %-25s"
-        f.puts "Tables\n"
-        f.puts
-        f.puts format(table_format, "Base Table (id)", "Table occurrence (id)")
-        f.puts format(table_format, "---------------", "---------------------")
-        f.puts
-        tables.each do |a_table|
-          table_id                                            = a_table['id']
-          table_name                                          = a_table['name']
-          basetable_id                                        = a_table['baseTableId']
-          basetable_name                                      = a_table['baseTable']
-          f.puts format(table_format, "#{basetable_name} (#{basetable_id})", "#{table_name} (#{table_id})")
-        end
-        f.puts
-        relationship_format = "        %-35s  %-15s  %-35s"
-        f.puts "Relationships\n"
-        relationships.each do |a_relationship|
-          f.puts
-          f.puts format("    Relationship: %-4d", a_relationship['id'])
-          predicates = a_relationship.xpath('./JoinPredicateList/*[name()="JoinPredicate"]')
-          predicates.each do |a_predicate|
-            predicate_type                                    = a_predicate['type']
-
-            left_field                                        = a_predicate.xpath('./LeftField/*[name()="Field"]').first
-            left_table                                        = left_field['table']
-            left_field_name                                   = left_field['name']
-
-            right_field                                       = a_predicate.xpath('./RightField/*[name()="Field"]').first
-            right_table                                       = right_field['table']
-            right_field_name                                  = right_field['name']
-            f.puts format(relationship_format, "#{left_table}::#{left_field_name}", "#{predicate_type}", "#{right_table}::#{right_field_name}")
-          end
-        end
-        f.write(NEWLINE + element2yaml(relationship_graph))
-      end
-
-    end
+    # def write_relationships
+    #   relationships_path    = '/FMPReport/File/RelationshipGraph'
+    #   relationship_graph    = @report.xpath("#{relationships_path}")
+    #   tables                = @report.xpath("#{relationships_path}/TableList/*[name()='Table']")
+    #   relationships         = @report.xpath("#{relationships_path}/RelationshipList/*[name()='Relationship']")
+    #   File.open(@relationships_filepath, 'w') do |f|
+    #     table_format = "    %-25s  %-25s"
+    #     f.puts "Tables\n"
+    #     f.puts
+    #     f.puts format(table_format, "Base Table (id)", "Table occurrence (id)")
+    #     f.puts format(table_format, "---------------", "---------------------")
+    #     f.puts
+    #     tables.each do |a_table|
+    #       table_id                                            = a_table['id']
+    #       table_name                                          = a_table['name']
+    #       basetable_id                                        = a_table['baseTableId']
+    #       basetable_name                                      = a_table['baseTable']
+    #       f.puts format(table_format, "#{basetable_name} (#{basetable_id})", "#{table_name} (#{table_id})")
+    #     end
+    #     f.puts
+    #     relationship_format = "        %-35s  %-15s  %-35s"
+    #     f.puts "Relationships\n"
+    #     relationships.each do |a_relationship|
+    #       f.puts
+    #       f.puts format("    Relationship: %-4d", a_relationship['id'])
+    #       predicates = a_relationship.xpath('./JoinPredicateList/*[name()="JoinPredicate"]')
+    #       predicates.each do |a_predicate|
+    #         predicate_type                                    = a_predicate['type']
+    #
+    #         left_field                                        = a_predicate.xpath('./LeftField/*[name()="Field"]').first
+    #         left_table                                        = left_field['table']
+    #         left_field_name                                   = left_field['name']
+    #
+    #         right_field                                       = a_predicate.xpath('./RightField/*[name()="Field"]').first
+    #         right_table                                       = right_field['table']
+    #         right_field_name                                  = right_field['name']
+    #         f.puts format(relationship_format, "#{left_table}::#{left_field_name}", "#{predicate_type}", "#{right_table}::#{right_field_name}")
+    #       end
+    #     end
+    #     f.write(NEWLINE + element2yaml(relationship_graph))
+    #   end
+    #
+    # end
 
     def write_menu_sets
       FileUtils.mkdir_p(@menu_sets_dirpath) unless File.directory?(@menu_sets_dirpath)
