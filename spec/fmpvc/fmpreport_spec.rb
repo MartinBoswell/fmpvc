@@ -160,6 +160,32 @@ describe 'FMPReport' do
     end
   end
   
+  describe '#write_privilege_sets' do
+
+    let (:privileges_file_content)      { IO.read(find_path_with_base(report2.report_dirpath + "/PrivilegeSets")) }
+    
+    it "should create an privileges file" do
+      expect(privileges_file_content).to match(%r{\[Full Access\]})
+    end
+    it "should have good content in privileges file" do
+      expect(privileges_file_content).to match(%r{\[Full\ Access\] \s+ True \s+ True \s+ True \s+ True \s+ False \s+ True \s+ All \s+ CreateEditDelete \s+ Modifiable \s+ True \s+ Modifiable \s+ True \s+ Modifiable \s+ True \s+ access\ to\ everything}mx) # table
+      expect(privileges_file_content).to match(%r{PrivilegeSet: \s+ comment: \s+ access\ to\ everything \s+ id: \s+ '\d+'}mx) # yaml
+    end
+  end
+  
+  describe '#write_extended_privileges' do
+
+    let (:ext_privileges_file_content)      { IO.read(find_path_with_base(report2.report_dirpath + "/ExtendedPrivileges")) }
+    
+    it "should create an privileges file" do
+      expect(ext_privileges_file_content).to match(%r{fmxml})
+    end
+    it "should have good content in privileges file" do
+      expect(ext_privileges_file_content).to match(%r{\d \s+ fmxml \s+ Access\ via\ XML\ Web\ Publishing\ -\ FMS\ only}mx) # table
+      expect(ext_privileges_file_content).to match(%r{comment: \s+ Access\ via\ XML\ Web\ Publishing\ -\ FMS\ only \s+ name: \s+ fmxml}mx) # yaml
+    end
+  end
+
   describe '#element2yaml' do
     # Internal method;  no interface => no unit tests
     # it "should take a Nokogiri::XML::Element and return YAML"
