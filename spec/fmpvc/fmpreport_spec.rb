@@ -164,7 +164,7 @@ describe 'FMPReport' do
     
     end
   
-    describe '#write_accounts' do
+    describe '#write_accounts', :focus => false do
     
       let (:accounts_file_content)      { IO.read(find_path_with_base(@report2.report_dirpath + "/Accounts")) }
     
@@ -174,6 +174,9 @@ describe 'FMPReport' do
       it "should have good content in accounts file" do
         expect(accounts_file_content).to match(%r{ \s+ 4 \s+ Chapman \s+ Active \s+ FileMaker \s+ \[Data \s+ Entry \s+ Only\] \s+ False \s+ False \s+ Graham \s+ Chapman}mx) # table
         expect(accounts_file_content).to match(%r{id:\ '2' \s+ privilegeSet:\ "\[Full\ Access\]"}mx) # yaml
+      end
+      it "should have good content in accounts file" do
+        expect(accounts_file_content).to match(%r{AccountCatalog: \s+ Account: \s+ -\ id:\ '1' \s+ privilegeSet:}mx) 
       end
     end
   
@@ -193,7 +196,7 @@ describe 'FMPReport' do
       end
     end
   
-    describe '#write_extended_privileges', :focus => true do
+    describe '#write_extended_privileges', :focus => false do
 
       let (:ext_privileges_file_content)      { IO.read(find_path_with_base(@report2.report_dirpath + "/ExtendedPrivileges")) }
     

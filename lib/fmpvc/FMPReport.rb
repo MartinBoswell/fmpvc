@@ -202,9 +202,9 @@ module FMPVC
 
     def write_accounts
       account_path = '/FMPReport/File/AccountCatalog'
+      account_catalog = @report.xpath(account_path)
       accounts = @report.xpath("#{account_path}/*[name()='Account']")
       File.open(@accounts_filepath, 'w') do |f|
-        yaml_output = YAML_START
         accounts_format        = "%6d  %-25s  %-10s  %-12s  %-20s  %-12s  %-12s  %-50s"
         accounts_header_format = accounts_format.gsub(%r{d}, 's')
         f.puts format(accounts_header_format, "id", "Name", "Status", "Management", "Privilege Set", "Empty Pass?", "Change Pass?", "Description")
@@ -229,9 +229,8 @@ module FMPVC
                     , account_changePasswordOnNextLogin \
                     , account_Description
           )
-          yaml_output += element2yaml(an_account).gsub(%r{\A --- \n}mx, '')
         end
-        f.write(NEWLINE + yaml_output)
+        f.write(NEWLINE + element2yaml(account_catalog))
       end
     end
 
