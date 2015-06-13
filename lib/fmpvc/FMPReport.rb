@@ -30,6 +30,7 @@ module FMPVC
       @privileges_filepath          = @report_dirpath + "/PrivilegeSets.txt"
       @ext_privileges_filepath      = @report_dirpath + "/ExtendedPrivileges.txt"
       @relationships_filepath       = @report_dirpath + "/Relationships.txt"
+      @menu_sets_dirpath            = @report_dirpath + "/CustomMenus"
       
       self.parse
       self.clean_dir
@@ -42,6 +43,7 @@ module FMPVC
       self.write_privilege_sets
       self.write_extended_privileges
       self.write_relationships
+      self.write_menu_sets
       
     end
 
@@ -166,13 +168,13 @@ module FMPVC
       
       tables = @report.xpath("#{object_xpath}/*[name()='BaseTable']")
       tables.each do |a_table|
-        table_name                  = a_table['name']
-        table_id                    = a_table['id']
-        sanitized_table_name        = fs_sanitize(table_name)
-        sanitized_table_name_id     = fs_id(sanitized_table_name, table_id)
-        sanitized_table_name_id_ext = sanitized_table_name_id + '.txt'
-        table_format                = "%6d   %-25s   %-15s  %-15s   %-50s"
-        table_header_format         = table_format.gsub(%r{d}, 's')
+        table_name                                    = a_table['name']
+        table_id                                      = a_table['id']
+        sanitized_table_name                          = fs_sanitize(table_name)
+        sanitized_table_name_id                       = fs_id(sanitized_table_name, table_id)
+        sanitized_table_name_id_ext                   = sanitized_table_name_id + '.txt'
+        table_format                                  = "%6d   %-25s   %-15s  %-15s   %-50s"
+        table_header_format                           = table_format.gsub(%r{d}, 's')
         File.open(@tables_dirpath + "/#{sanitized_table_name_id_ext}", 'w') do |f|
           f.puts format(table_header_format, "id", "Field Name", "Data Type", "Field Type", "Comment")
           f.puts format(table_header_format, "--", "----------", "---------", "----------", "-------")
@@ -303,8 +305,6 @@ module FMPVC
       end
     end
     
-    
-    
     def write_relationships
       relationships_path    = 'FMPReport/File/RelationshipGraph'
       tables                = @report.xpath("#{relationships_path}/TableList/*[name()='Table']")
@@ -353,7 +353,39 @@ module FMPVC
 
     end
 
-
+    def write_menu_sets
+      FileUtils.mkdir_p(@menu_sets_dirpath) unless File.directory?(@menu_sets_dirpath)
+      
+      menu_sets_path    = 'FMPReport/File/CustomMenuSetCatalog'
+      menu_sets = @report.xpath("#{menu_sets_path}/*[name()='CustomMenuSet']")
+      menu_sets.each do |a_menu_set|
+        menu_set_name                                 = a_menu_set['name']
+        menu_set_id                                   = a_menu_set['id']
+        sanitized_menu_set_name                       = fs_sanitize(menu_set_name)
+        sanitized_menu_set_name_id                    = fs_id(sanitized_menu_set_name, menu_set_id)
+        sanitized_menu_set_name_id_ext                = sanitized_menu_set_name_id + '.txt'
+        menu_set_format                               = "%6d  %-35s"
+        menu_set_header_format                        = menu_set_format.gsub(%r{d}, 's')
+        File.open(@menu_sets_dirpath + "/#{sanitized_menu_set_name_id_ext}", 'w') do |f|
+          f.puts format(menu_set_header_format, "id", "Menu")
+          f.puts format(menu_set_header_format, "--", "----")
+          a_menu_set.xpath("./CustomMenuList/*[name()='CustomMenu']").each do |a_menu|
+            f.puts format(menu_set_format, a_menu['id'], a_menu['name'])
+          end
+          f.write(NEWLINE + element2yaml(a_menu_set))
+        end
+      end
+      
+    end
+      
+      
+      
+      
+      
+      
+      
+      
+      
 
 
 

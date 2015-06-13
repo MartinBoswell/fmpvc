@@ -202,7 +202,19 @@ describe 'FMPReport' do
     it "should list relationships between TOs" do 
       expect(relationships_file_content).to match(%r{Roles::_kF_movie_id \s+ Equal \s+ Movies::_id}mx)
     end
+        
+  end
+  
+  describe '#write_menusets' do
     
+    let (:menuset_folder)                 {  }
+    let (:menuset_content)                {  }
+    
+    it "should create a folder for menusets" do
+      
+    end
+    it "should create a file for each menu set"
+    it "should create a menuset that lists the menus"
     
   end
 
