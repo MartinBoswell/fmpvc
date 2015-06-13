@@ -26,9 +26,9 @@ module FMPVC
       self.define_content_procs
       
       
-      @tables_dirpath               = @report_dirpath + "/Tables"
+      # @tables_dirpath               = @report_dirpath + "/Tables"
       @scripts_dirpath              = @report_dirpath + "/Scripts"
-      @value_lists_dirpath          = @report_dirpath + "/ValueLists"
+      # @value_lists_dirpath          = @report_dirpath + "/ValueLists"
       @custom_functions_dirpath     = @report_dirpath + "/CustomFunctions"
       @accounts_filepath            = @report_dirpath + "/Accounts.txt"
       @privileges_filepath          = @report_dirpath + "/PrivilegeSets.txt"
@@ -45,9 +45,15 @@ module FMPVC
       self.parse
       self.clean_dir
       self.write_dir
-      self.write_tables
       self.write_scripts
-      self.parse_fms_obj("/FMPReport/File/ValueListCatalog/*[name()='ValueList']", @vl_content) # write_value_lists
+
+      # self.parse_fms_obj("/FMPReport/File/ValueListCatalog/*[name()='ValueList']", @value_list_content) # write_value_lists
+      @value_lists = parse_fms_obj("/FMPReport/File/ValueListCatalog/*[name()='ValueList']", @value_list_content)
+      write_obj_to_disk(@value_lists, "/ValueLists")
+      # self.write_tables
+      @tables = parse_fms_obj("/FMPReport/File/BaseTableCatalog/*[name()='BaseTable']", @table_content)
+      write_obj_to_disk(@tables, "/Tables")
+
       self.write_custom_functions
       self.write_accounts
       self.write_privilege_sets
@@ -108,7 +114,7 @@ module FMPVC
     
     def define_content_procs
       
-      @vl_content = Proc.new do |a_value_list|
+      @value_list_content = Proc.new do |a_value_list|
         content = ''
         source_type = a_value_list.xpath("./Source").first['value']
         if source_type == "Custom"
@@ -117,9 +123,23 @@ module FMPVC
         content
       end
       
+      @table_content = Proc.new do |a_table|
+        content = ''
+        table_format            = "%6d   %-25s   %-15s  %-15s   %-50s"
+        table_header_format     = table_format.gsub(%r{d}, 's')
+        content                 += format(table_header_format, "id", "Field Name", "Data Type", "Field Type", "Comment")
+        content                 += format(table_header_format, "--", "----------", "---------", "----------", "-------")
+        a_table.xpath("//BaseTable[@name='#{a_table['name']}']/FieldCatalog/*[name()='Field']").each do |t| 
+          t_comment             = t.xpath("./Comment").text
+          content               += format(table_format, t['id'], t['name'], t['dataType'], t['fieldType'], t_comment)
+        end
+        content
+      end
+      
     end
 
     def parse_fms_obj(object_xpath, obj_content)
+      objects_parsed = Array.new
       objects = @report.xpath(object_xpath)
       objects.each do |an_obj|
         obj_name                    = an_obj['name']
@@ -131,24 +151,36 @@ module FMPVC
         content = obj_content.call(an_obj)
         yaml = element2yaml(an_obj)
   
-        obj_text_content = {
+        obj_parsed = {
             :name        => sanitized_obj_name_id_ext                        \
           , :type        => :file                                            \
           , :xpath       => an_obj.path                                      \
           , :content     => content                                          \
           , :yaml        => yaml                                             \
         }
-        write_vl_to_disk(obj_text_content)
+        objects_parsed.push(obj_parsed)
+      end
+      objects_parsed
+    end
+    
+    def write_obj_to_disk(objs, disk_location)
+      full_path = @report_dirpath + disk_location
+      if objs.class == Hash
+        # single file objects
+      elsif objs.class == Array
+        # multi-file objects in directory
+        FileUtils.mkdir_p(full_path) unless File.directory?(full_path)
+        objs.each do |obj|
+          File.open("#{full_path}/#{obj[:name]}", 'w') do |f|
+            f.write(obj[:content] + NEWLINE) unless obj[:content] == ''
+            f.write(NEWLINE + obj[:yaml])
+          end
+        end
       end
     end
-
-    def write_vl_to_disk(obj)
-      FileUtils.mkdir_p(@value_lists_dirpath) unless File.directory?(@value_lists_dirpath)
-      File.open("#{@value_lists_dirpath}/#{obj[:name]}", 'w') do |f|
-        f.write(obj[:content])
-        f.write(NEWLINE + obj[:yaml])
-      end
-    end
+    
+    
+    
     
     ###
     ### create files
@@ -186,7 +218,7 @@ module FMPVC
       end
     end
     
-    # def write_value_lists(object_xpath = "/FMPReport/File/ValueListCatalog/*[name()='ValueList']", obj_content = vl_content)
+    # def write_value_lists(object_xpath = "/FMPReport/File/ValueListCatalog/*[name()='ValueList']", obj_content = value_list_content)
     #   parse_fms_obj(object_xpath, obj_content)
     # end
 
