@@ -59,7 +59,13 @@ module FMPVC
       write_obj_to_disk(@tables, @report_dirpath + "/Tables")
 
       self.write_custom_functions
-      self.write_accounts
+      
+      # self.write_accounts
+      @accounts = parse_fms_obj("/FMPReport/File/AccountCatalog", "/*[name()='Account']", @accounts_content, true)
+      # puts "Accounts: #{@accounts.class}    ---- #{@accounts.first.class}   :   #{@accounts.first[:name]}"
+      # puts "Accounts content: #{@accounts.first[:content]}"
+      write_obj_to_disk(@accounts, @report_dirpath + "/Accounts.txt")
+      
       self.write_privilege_sets
       self.write_extended_privileges
       self.write_relationships
@@ -145,9 +151,41 @@ module FMPVC
         a_script.xpath("./StepList/Step/StepText").each {|t| content += t.text.gsub(%r{\n},'') + "\n" } # remove \n from middle of steps
         content
       end
+      
+      @accounts_content = Proc.new do |accounts|
+        content = ''
+          accounts_format        = "%6d  %-25s  %-10s  %-12s  %-20s  %-12s  %-12s  %-50s"
+          accounts_header_format = accounts_format.gsub(%r{d}, 's')
+          content += format(accounts_header_format, "id", "Name", "Status", "Management", "Privilege Set", "Empty Pass?", "Change Pass?", "Description") + NEWLINE
+          content += format(accounts_header_format, "--", "----", "------", "----------", "-------------", "-----------", "------------", "-----------") + NEWLINE
+          content += accounts.map do |an_account|
+            account_name                                = an_account['name']
+            account_id                                  = an_account['id']
+            account_privilegeSet                        = an_account['privilegeSet']
+            account_emptyPassword                       = an_account['emptyPassword']
+            account_changePasswordOnNextLogin           = an_account['changePasswordOnNextLogin']
+            account_managedBy                           = an_account['managedBy']
+            account_status                              = an_account['status']
+            account_Description                         = an_account.xpath('./Description').text
+            format(
+                        accounts_format \
+                      , account_id \
+                      , account_name \
+                      , account_status \
+                      , account_managedBy \
+                      , account_privilegeSet \
+                      , account_emptyPassword \
+                      , account_changePasswordOnNextLogin \
+                      , account_Description
+            )
+          end.join(NEWLINE)
+          
+        content
+      end
+      
     end
 
-    def parse_fms_obj(object_base, object_nodes, obj_content)
+    def parse_fms_obj(object_base, object_nodes, obj_content, one_file = false)
       objects_parsed = Array.new
       objects = @report.xpath("#{object_base}#{object_nodes}")
       objects.each do |an_obj|
@@ -169,23 +207,25 @@ module FMPVC
           obj_parsed[:name]     = sanitized_obj_name_id
           obj_parsed[:children] = parse_fms_obj(an_obj.path, object_nodes, obj_content) 
         else  
-          obj_parsed[:content]  = obj_content.call(an_obj)
-          obj_parsed[:yaml]     = element2yaml(an_obj)
+          obj_parsed[:content]  = one_file ? obj_content.call(objects) : obj_content.call(an_obj)
+          obj_parsed[:yaml]     = one_file ? element2yaml(@report.xpath(object_base))     : element2yaml(an_obj)
         end
         
         objects_parsed.push(obj_parsed)
+        break if one_file == true
       end
       objects_parsed
     end
     
     def write_obj_to_disk(objs, full_path)
-      if objs.class == Hash
+      # puts "#{objs.class}    -    #{full_path}"
+      if full_path =~ %r{\.txt}
         # single file objects
-        File.open("#{full_path}/#{objs[:name]}", 'w') do |f|
-          f.write(objs[:content] + NEWLINE) unless objs[:content] == ''
-          f.write(NEWLINE + objs[:yaml])
+        File.open(full_path, 'w') do |f|
+          f.write(objs.first[:content] + NEWLINE) unless objs.first[:content] == ''
+          f.write(NEWLINE + objs.first[:yaml])
         end
-      elsif objs.class == Array
+      else
         # multi-file objects in directory
         FileUtils.mkdir_p(full_path) unless File.directory?(full_path)
         objs.each do |obj|
