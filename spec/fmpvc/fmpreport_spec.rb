@@ -241,7 +241,7 @@ describe 'FMPReport' do
     
   end
   
-  describe '#write_file_access', :focus => true do
+  describe '#write_file_access', :focus => false do
     
     let (:file_access_file)               { find_path_with_base(report2.report_dirpath + "/FileAccess") }
     let (:file_access_file_content)       { IO.read(file_access_file) }
@@ -258,7 +258,7 @@ describe 'FMPReport' do
     
   end
   
-  describe '#write_external_data_sources', :focus => true do
+  describe '#write_external_data_sources', :focus => false do
     
     let (:data_source_file)               { find_path_with_base(report2.report_dirpath + "/ExternalDataSources") }
     let (:data_source_file_content)       { IO.read(data_source_file) }
@@ -273,7 +273,28 @@ describe 'FMPReport' do
     it "should show data source list" do 
       expect(data_source_file_content).to match(%r{3 \s+ ODBC\ Testing \s+ ODBC_Testing \s+ Movies_fmp12.xml}mx)
     end
+  
+  end
+  
+  describe '#write_file_options', :focus => true do
+    
+    let (:file_options_file)               { find_path_with_base(report2.report_dirpath + "/Options") }
+    let (:file_options_file_content)       { IO.read(file_options_file) }
+    
+    it "should create an external data source file" do
+      expect(File.exists?(file_options_file)).to be true
+    end
+    it "should contain YAML" do
+      expect(file_options_file_content).to match(%r{OnOpen: \s+ MinimumAllowedVersion: \s+ name:\ '12.0' \s+ id:\ '1208'}mx)
+    end
 
+    it "should show data source list" do 
+      expect(file_options_file_content).to match(%r{Minimum\ Allowed\ Version: \s+ 12.0 \s+ Account: \s+ Admin}mx)
+    end
+    
+    it "should have a note explaining the encryption option" do
+      expect(file_options_file_content).to match(%r{no\ encryption}imx)
+    end
     
   end
   

@@ -34,6 +34,7 @@ module FMPVC
       @menus_dirpath                = @report_dirpath + "/CustomMenus"
       @file_access_filepath         = @report_dirpath + "/FileAccess.txt"
       @data_sources_filepath        = @report_dirpath + "/ExternalDataSources.txt"
+      @file_options_filepath        = @report_dirpath + "/Options.txt"
       
       self.parse
       self.clean_dir
@@ -50,6 +51,7 @@ module FMPVC
       self.write_menus
       self.write_file_access
       self.write_external_data_sources
+      self.write_file_options
       
     end
 
@@ -441,14 +443,14 @@ module FMPVC
     end
     
     def write_external_data_sources
-      data_sources_path = '/FMPReport/File/ExternalDataSourcesCatalog'
-      data_sources = @report.xpath(data_sources_path)
-      file_references = data_sources.xpath("./*[name()='FileReference']")
-      odbc_sources = data_sources.xpath("./*[name()='OdbcDataSource']")
-      file_references_format = "   %6d  %-25s  %-25s"
-      file_references_header_format = file_references_format.gsub(%r{d},'s')
-      odbc_source_format = "   %6d  %-25s  %-25s  %-25s"
-      odbc_source_header_format = odbc_source_format.gsub(%r{d},'s')
+      data_sources_path                         = '/FMPReport/File/ExternalDataSourcesCatalog'
+      data_sources                              = @report.xpath(data_sources_path)
+      file_references                           = data_sources.xpath("./*[name()='FileReference']")
+      odbc_sources                              = data_sources.xpath("./*[name()='OdbcDataSource']")
+      file_references_format                    = "   %6d  %-25s  %-25s"
+      file_references_header_format             = file_references_format.gsub(%r{d},'s')
+      odbc_source_format                        = "   %6d  %-25s  %-25s  %-25s"
+      odbc_source_header_format                 = odbc_source_format.gsub(%r{d},'s')
       File.open(@data_sources_filepath, 'w') do |f|
         f.puts format(file_references_header_format, "id", "File Reference", "Path List")
         f.puts format(file_references_header_format, "--", "--------------", "---------")
@@ -466,7 +468,48 @@ module FMPVC
       
     end
     
-    
+    def write_file_options
+      file_options_path                          = '/FMPReport/File/Options'
+      file_options                               = @report.xpath(file_options_path)
+      file_options_format                        = "    %-27s  %-30s"
+      trigger_format                             = "        %-23s  %-30s"
+      
+      # optional <FMPReport><File><Options>, see DDR_grammar doc, p. 5
+      open_account_search                        = file_options.xpath('./OnOpen/Account')
+      open_account                               = (open_account_search.size > 0 ? open_account_search.first['name']: "")
+      open_layout_search                         = file_options.xpath('./OnOpen/Layout')
+      open_layout                                = ( open_layout_search.size > 0 ? open_layout_search.first['name'] : "" )
+      
+      encryption_type                            = file_options.xpath('./Encryption').first['type']
+      encryption_note                            = case encryption_type
+                                                   when "0"
+                                                     "no encryption"
+                                                   when "1"
+                                                     "AES256 encrypted"
+                                                   end
+      
+      File.open(@file_options_filepath, 'w') do |f|
+        f.puts "File Options"
+        f.puts "------------"
+        f.puts
+        f.puts format(file_options_format, "Encryption:", "#{encryption_type} (#{encryption_note})")
+        f.puts ""
+    		f.puts format(file_options_format, "Minimum Allowed Version:", file_options.xpath('./OnOpen/MinimumAllowedVersion').first['name'])
+    		f.puts format(file_options_format, "Account:", open_account)
+    		f.puts format(file_options_format, "Layout:", open_layout)
+        f.puts ""
+        f.puts format(file_options_format, "Default Custom Menu Set:", file_options.xpath('./DefaultCustomMenuSet/CustomMenuSet').first['name'])
+        f.puts ""
+        f.puts "    Triggers"
+        file_options.xpath('./WindowTriggers/*').each do |t|
+          f.puts format(trigger_format, t.name, t.xpath('./Script').first['name'])
+        end
+        f.write(NEWLINE + element2yaml(file_options))
+      end
+      
+      
+      
+    end
     
   end
 
