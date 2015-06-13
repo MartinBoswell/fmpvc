@@ -16,14 +16,15 @@ module FMPVC
       report_dirpath    = "#{ddr.base_dir}/#{report_filename}"  # location of the fmpfilename.xml file
       raise(RuntimeError, "Error: can't find the report file, #{report_dirpath}") unless File.readable?(report_dirpath)
       
-      @content                     = IO.read(report_dirpath, mode: 'rb:UTF-16:UTF-8') # transcode is specifically for a spec content match
-      @text_dir                    = "#{ddr.base_dir}../fmp_text"
-      @text_filename               = fs_sanitize(report_filename)
-      @report_dirpath              = "#{@text_dir}/#{@text_filename}"
-      @tables_dirpath              = @report_dirpath + "/Tables"
-      @scripts_dirpath             = @report_dirpath + "/Scripts"
-      @value_lists_dirpath         = @report_dirpath + "/ValueLists"
-      @custom_functions_dirpath    = @report_dirpath + "/CustomFunctions"
+      @content                      = IO.read(report_dirpath, mode: 'rb:UTF-16:UTF-8') # transcode is specifically for a spec content match
+      @text_dir                     = "#{ddr.base_dir}../fmp_text"
+      @text_filename                = fs_sanitize(report_filename)
+      @report_dirpath               = "#{@text_dir}/#{@text_filename}"
+      @tables_dirpath               = @report_dirpath + "/Tables"
+      @scripts_dirpath              = @report_dirpath + "/Scripts"
+      @value_lists_dirpath          = @report_dirpath + "/ValueLists"
+      @custom_functions_dirpath     = @report_dirpath + "/CustomFunctions"
+      @accounts_filepath            = @report_dirpath + "/Accounts.txt"
       
       self.parse
       self.clean_dir
@@ -32,6 +33,7 @@ module FMPVC
       self.write_scripts
       self.write_value_lists
       self.write_custom_functions
+      self.write_accounts
       
     end
 
@@ -170,6 +172,41 @@ module FMPVC
           end
           f.write(element2yaml(a_table)) # a_table.path) # 
         end
+      end
+    end
+
+    def write_accounts
+      account_path = '/FMPReport/File/AccountCatalog'
+      accounts = @report.xpath("#{account_path}/*[name()='Account']")
+      File.open(@accounts_filepath, 'w') do |f|
+        yaml_output = "---\n"
+        accounts_format        = "%6d  %-25s  %-10s  %-12s  %-20s  %-12s  %-12s  %-50s"
+        accounts_header_format = accounts_format.gsub(%r{d}, 's')
+        f.puts format(accounts_header_format, "id", "Name", "Status", "Management", "Privilege Set", "Empty Pass?", "Change Pass?", "Description")
+        f.puts format(accounts_header_format, "--", "----", "------", "----------", "-------------", "-----------", "------------", "-----------")
+        accounts.each do |an_account|
+          account_name                                = an_account['name']
+          account_id                                  = an_account['id']
+          account_privilegeSet                        = an_account['privilegeSet']
+          account_emptyPassword                       = an_account['emptyPassword']
+          account_changePasswordOnNextLogin           = an_account['changePasswordOnNextLogin']
+          account_managedBy                           = an_account['managedBy']
+          account_status                              = an_account['status']
+          account_Description                         = an_account.xpath('./Description').text
+          f.puts format(    
+                      accounts_format \
+                    , account_id \
+                    , account_name \
+                    , account_status \
+                    , account_managedBy \
+                    , account_privilegeSet \
+                    , account_emptyPassword \
+                    , account_changePasswordOnNextLogin \
+                    , account_Description
+          )
+          yaml_output += element2yaml(an_account).gsub(%r{\A --- \n}mx, '')
+        end
+        f.write(yaml_output)
       end
     end
 

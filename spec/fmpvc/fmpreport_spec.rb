@@ -126,7 +126,7 @@ describe 'FMPReport' do
 
   describe '#write_tables' do
     
-    let( :movie_file )      { IO.read(find_path_with_base(report2.report_dirpath + "/Tables/Movies")) }
+    let (:movie_file)         { IO.read(find_path_with_base(report2.report_dirpath + "/Tables/Movies")) }
   
     it "should create a table file on disk" do
       table_list = Dir.glob(report2.report_dirpath + "/Tables/*.txt")
@@ -145,6 +145,19 @@ describe 'FMPReport' do
       expect(movie_file).to match(%r{--- \s+ BaseTable: \s+ id:}mx)
     end
     
+  end
+  
+  describe '#write_accounts' do
+    
+    let (:accounts_file_content)      { IO.read(find_path_with_base(report2.report_dirpath + "/Accounts")) }
+    
+    it "should create an accounts file" do
+      expect(accounts_file_content).to match(%r{Admin})
+    end
+    it "should have good content in accounts file" do
+      expect(accounts_file_content).to match(%r{ \s+ 4 \s+ Chapman \s+ Active \s+ FileMaker \s+ \[Data \s+ Entry \s+ Only\] \s+ False \s+ False \s+ Graham \s+ Chapman}mx) # table
+      expect(accounts_file_content).to match(%r{id:\ '2' \s+ privilegeSet:\ "\[Full\ Access\]"}mx) # yaml
+    end
   end
   
   describe '#element2yaml' do
