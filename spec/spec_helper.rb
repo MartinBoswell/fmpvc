@@ -1,3 +1,7 @@
+# from bundler
+# $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
+# require 'fmpvc'
+
 require 'rubygems'
 
 # helper to load all of the classes for rspec tests
