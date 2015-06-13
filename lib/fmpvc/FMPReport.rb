@@ -32,6 +32,7 @@ module FMPVC
       @relationships_filepath       = @report_dirpath + "/Relationships.txt"
       @menu_sets_dirpath            = @report_dirpath + "/CustomMenuSets"
       @menus_dirpath                = @report_dirpath + "/CustomMenus"
+      @file_access_filepath         = @report_dirpath + "/FileAccess.txt"
       
       self.parse
       self.clean_dir
@@ -46,6 +47,7 @@ module FMPVC
       self.write_relationships
       self.write_menu_sets
       self.write_menus
+      self.write_file_access
       
     end
 
@@ -308,7 +310,7 @@ module FMPVC
     end
     
     def write_relationships
-      relationships_path    = 'FMPReport/File/RelationshipGraph'
+      relationships_path    = '/FMPReport/File/RelationshipGraph'
       tables                = @report.xpath("#{relationships_path}/TableList/*[name()='Table']")
       relationships         = @report.xpath("#{relationships_path}/RelationshipList/*[name()='Relationship']")
       File.open(@relationships_filepath, 'w') do |f|
@@ -391,8 +393,6 @@ module FMPVC
         sanitized_menu_name                       = fs_sanitize(menu_name)
         sanitized_menu_name_id                    = fs_id(sanitized_menu_name, menu_id)
         sanitized_menu_name_id_ext                = sanitized_menu_name_id + '.txt'
-        # menu_format                               = "%6d  %-35s"
-        # menu_header_format                        = menu_format.gsub(%r{d}, 's')
         File.open(@menus_dirpath + "/#{sanitized_menu_name_id_ext}", 'w') do |f|
           menu_comment = a_menu.xpath('./Comment').text
           menu_base = a_menu.xpath('./BaseMenu').first['name']
@@ -403,24 +403,45 @@ module FMPVC
           menu_items = a_menu.xpath("./MenuItemList/*[name()='MenuItem']")
           menu_items.each do |an_item|
             an_item.xpath('./Command').each { |c| f.puts "#{c['name']}"}
-            # f.puts .first['name'] if
           end
           f.write(NEWLINE + element2yaml(a_menu))
         end
       end
     end
       
+    def write_file_access
+      file_access_path = '/FMPReport/File/AuthFileCatalog'
+      file_access = @report.xpath("#{file_access_path}")
+      inbound_access = file_access.xpath("./Inbound/*[name()='InboundAuthorization']")
+      outbound_access = file_access.xpath("./Outbound/*[name()='OutboundAuthorization']")
+      access_format = "          %6d  %-25s  %-25s  %-25s"
+      access_format_header = access_format.gsub(%r{d}, 's')
+      File.open(@file_access_filepath, 'w') do |f|
+        auth_requirement = file_access.first['requireAuthorization']
+        f.puts "Authorization required: #{auth_requirement}"
+        if auth_requirement == "True"
+          f.puts
+          f.puts format(access_format_header, "id", "Timestamp", "Account", "Filenames")
+          f.puts format(access_format_header, "--", "---------", "-------", "---------")
+          f.puts format("%12s", "Inbound:")
+          inbound_access.each do |i|
+            f.puts format(access_format, i['id'], i['date'], i['user'], i['filenames'])
+          end
+          f.puts format("%12s", "Outbound:")
+          outbound_access.each do |o|
+            f.puts format(access_format, o['id'], o['date'], o['user'], o['filenames'])
+          end
+        end
+        f.puts
+        f.write(NEWLINE + element2yaml(file_access))
+      end
       
-      
-      
-      
-      
-
-
-
-
-
-
+    end
+    
+    
+    
+    
+    
   end
 
 end

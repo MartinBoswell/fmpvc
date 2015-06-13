@@ -240,7 +240,24 @@ describe 'FMPReport' do
     end
     
   end
-
+  
+  describe '#write_file_access', :focus => false do
+    
+    let (:file_access_file)               { find_path_with_base(report2.report_dirpath + "/FileAccess") }
+    let (:file_access_file_content)       { IO.read(file_access_file) }
+    
+    it "should should create a file access file" do
+      expect(File.exists?(file_access_file)).to be true
+    end
+    it "should display the YAML" do
+      expect(file_access_file_content).to match(%r{requireAuthorization:\ 'True' \s+ Inbound: \s+ InboundAuthorization: \s+ id:\ '2'}mx)
+    end
+    it "should list file access parameters" do 
+      expect(file_access_file_content).to match(%r{  }mx)
+    end
+    
+  end
+  
   describe '#element2yaml'
     # Internal method;  no interface => no unit tests
     # it "should take a Nokogiri::XML::Element and return YAML"
