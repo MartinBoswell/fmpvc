@@ -99,7 +99,10 @@ describe 'FMPReport' do
       value_list_content = IO.read(find_path_with_base(report2.report_dirpath + "/ValueLists/Favorite Roles"))
       expect(value_list_content).to match(%r{Randall McMurphy\nLone Watie\n- \n})
     end
-    it "should handle non-custom value lists" 
+    it "should handle non-custom value lists" do
+      value_list_content = IO.read(find_path_with_base(report2.report_dirpath + "/ValueLists/Role Categories"))
+      expect(value_list_content).to match(%r{Source: \s+ value: \s+ Field}mx)
+    end
     
   end
 
@@ -133,8 +136,17 @@ describe 'FMPReport' do
       expect(table_file_content).to match(%r{     5   _kF_movie_id                Number     Normal})
       
     end
-    it "should create table files with field comments"
+    it "should create table files with field comments" do
+      table_file_content = IO.read(find_path_with_base(report2.report_dirpath + "/Tables/Movies"))
+      expect(table_file_content).to match(%r{ \s+ 4 \s+ name \s+ Text \s+ Normal \s+ Name\ of\ the\ movie\.}mx)
+    end
     
+  end
+  
+  describe '#element2yaml' do
+    # Internal only; no unit tests.
+    # it "should take a Nokogiri::XML::Element and return YAML" do
+    # end
   end
 
 end

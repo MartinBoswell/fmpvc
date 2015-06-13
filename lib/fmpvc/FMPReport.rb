@@ -2,6 +2,11 @@ module FMPVC
   
   require 'nokogiri'
   require 'fileutils'
+	
+  # for xml2yaml
+  require 'active_support/core_ext/hash/conversions'
+	require 'yaml'
+  
   
   class FMPReport
     
@@ -66,6 +71,18 @@ module FMPVC
       FileUtils.rm_rf(@report_dirpath)
     end
     
+    def element2yaml(xml_element)
+      "some YAML output"
+      # value_lists        = report.xpath("/FMPReport/File/ValueListCatalog/ValueList[1]")
+  		element_xml							= xml_element.to_xml
+  		element_hash						= Hash.from_xml(element_xml)
+  		element_yaml						= element_hash.to_yaml
+    end
+    
+    ###
+    ### create files
+    ###
+    
     def write_scripts(object_xpath = '/FMPReport/File/ScriptCatalog')
       current_disk_folder = disk_path_from_base('/FMPReport/File/ScriptCatalog', object_xpath)
       
@@ -108,7 +125,12 @@ module FMPVC
         sanitized_value_list_name_id       = fs_id(sanitized_value_list_name, value_list_id)
         sanitized_value_list_name_id_ext   = sanitized_value_list_name_id + '.txt'
         File.open(@value_lists_dirpath + "/#{sanitized_value_list_name_id_ext}", 'w') do |f|
-          a_value_list.xpath("./CustomValues/Text").each {|t| f.puts t.text}
+          source_type = a_value_list.xpath("./Source").first['value']
+          if source_type == "Custom"
+            a_value_list.xpath("./CustomValues/Text").each {|t| f.puts t.text}
+          else # elsif source_type == "Field"
+            f.write(element2yaml(a_value_list))
+          end
         end
       end
       
