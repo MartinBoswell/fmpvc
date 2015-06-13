@@ -230,7 +230,7 @@ module FMPVC
       
       @table_content = Proc.new do |a_table|
         content = ''
-        table_format            = "%6d   %-25s   %-15s  %-15s   %-50s"
+        table_format            = "%6d   %-25s   %-15s  %-15s   %-50s\n"
         table_header_format     = table_format.gsub(%r{d}, 's')
         content                 += format(table_header_format, "id", "Field Name", "Data Type", "Field Type", "Comment")
         content                 += format(table_header_format, "--", "----------", "---------", "----------", "-------")
@@ -365,7 +365,7 @@ module FMPVC
       
       @extended_priviledge_content = Proc.new do |ext_privileges|
         content = ''
-        ext_privilege_format              = "%6d  %-20s  %-85s  %-150s"
+        ext_privilege_format              = "%6d  %-20s  %-85s  %-150s\n"
         ext_privilege_header_format       = ext_privilege_format.gsub(%r{d}, 's')
         content += format(ext_privilege_header_format, "id", "Name", "Description", "Privilege Sets")
         content += format(ext_privilege_header_format, "--", "----", "-----------", "--------------")
@@ -381,7 +381,7 @@ module FMPVC
                     , ext_privilege_name \
                     , ext_privilege_comment \
                     , ext_privilege_sets \
-          ) + NEWLINE
+          ) 
         end
         content
       end
@@ -518,7 +518,7 @@ module FMPVC
       
       @themes_content = Proc.new do |themes|
         content = ''
-        theme_format = "  %6s  %-20s  %-20s  %6s  %-20s  %-20s\n"
+        theme_format = "  %6s  %-20s  %-20s  %-10s  %-10s  %-20s\n"
         content += format(theme_format, "id", "Name", "Group", "Version", "Locale", "Internal Name")
         content += format(theme_format, "--", "----", "-----", "-------", "------", "-------------")
         themes.each do |a_theme|
