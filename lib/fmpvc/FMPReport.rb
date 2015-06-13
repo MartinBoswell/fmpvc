@@ -68,7 +68,7 @@ module FMPVC
     end
     
     def write_all_objects()
-      post_notification('report files.', 'Writing')
+      post_notification('report files', 'Writing')
       @named_objects.each { |obj| write_obj_to_disk(obj[:content], @report_dirpath + obj[:disk_path])}
     end
 
