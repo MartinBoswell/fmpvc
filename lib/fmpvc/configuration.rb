@@ -6,7 +6,7 @@ module FMPVC
    def initialize
      # set default config settings
      @quiet               = false        # don't print progress to stdout
-     @yaml                = true
+     @yaml                = true         # append full YAML to text files
      @ddr_filename        = 'Summary'
      @ddr_dirname         = 'fmp_ddr'
      @text_dirname        = 'fmp_text'

@@ -94,6 +94,7 @@ module FMPVC
     end
     
     def element2yaml(xml_element)
+      return '' unless FMPVC.configuration.yaml
   		element_xml							= xml_element.to_xml({:encoding => 'UTF-8'}) # REMEMBER: the encoding
   		element_hash						= Hash.from_xml(element_xml)
   		element_yaml						= element_hash.to_yaml
