@@ -40,7 +40,7 @@ module FMPVC
 
       # @menu_sets_dirpath            = @report_dirpath + "/CustomMenuSets"
       # @menus_dirpath                = @report_dirpath + "/CustomMenus"
-      @themes_filepath              = @report_dirpath + "/Themes.txt"
+      # @themes_filepath              = @report_dirpath + "/Themes.txt"
       
       @layouts_dirpath              = @report_dirpath + "/Layouts"
 
@@ -56,6 +56,8 @@ module FMPVC
       write_obj_to_disk(@scripts, @report_dirpath + "/Scripts")
       
       self.write_layouts
+      # @ = parse_fms_obj(, , , true)
+      # write_obj_to_disk(, @report_dirpath + )
       
 
       ###
@@ -80,11 +82,6 @@ module FMPVC
       # self.write_menus
       @custom_menus = parse_fms_obj("/FMPReport/File/CustomMenuCatalog", "/*[name()='CustomMenu']", @custom_menus_content)
       write_obj_to_disk(@custom_menus, @report_dirpath + "/CustomMenus")
-      
-      self.write_themes
-      
-      # @ = parse_fms_obj(, , , true)
-      # write_obj_to_disk(, @report_dirpath + )
       
     
       ###
@@ -122,7 +119,11 @@ module FMPVC
       @file_options = parse_fms_obj("/FMPReport/File/Options", '', @file_options_content, true)
       write_obj_to_disk(@file_options, @report_dirpath + "/Options.txt")
       
-            
+      # self.write_themes
+      @themes = parse_fms_obj("/FMPReport/File/ThemeCatalog", "/*[name()='Theme']", @themes_content, true)
+      write_obj_to_disk(@themes, @report_dirpath + "/Themes.txt")
+      
+      
     end
 
     def parse
@@ -472,6 +473,18 @@ module FMPVC
         menu_items = a_menu.xpath("./MenuItemList/*[name()='MenuItem']")
         menu_items.each do |an_item|
           an_item.xpath('./Command').each { |c| content += "  #{c['name']}\n"}
+        end
+        
+        content
+      end
+      
+      @themes_content = Proc.new do |themes|
+        content = ''
+        theme_format = "  %6s  %-20s  %-20s  %6s  %-20s  %-20s\n"
+        content += format(theme_format, "id", "Name", "Group", "Version", "Locale", "Internal Name")
+        content += format(theme_format, "--", "----", "-----", "-------", "------", "-------------")
+        themes.each do |a_theme|
+          content += format(theme_format, a_theme['id'], a_theme['name'], a_theme['group'], a_theme['version'], a_theme['locale'], a_theme['internalName'])
         end
         
         content
@@ -1008,21 +1021,22 @@ module FMPVC
       end
     end
     
-    def write_themes
-      themes_path                                 = '/FMPReport/File/ThemeCatalog'
-      themes_yaml                                 = element2yaml(@report.xpath(themes_path))
-      themes                                      = @report.xpath(themes_path + "/*[name()='Theme']")
-      File.open(@themes_filepath, 'w') do |f|
-        theme_format = "  %6s  %-20s  %-20s  %6s  %-20s  %-20s"
-        f.puts format(theme_format, "id", "Name", "Group", "Version", "Locale", "Internal Name")
-        f.puts format(theme_format, "--", "----", "-----", "-------", "------", "-------------")
-        themes.each do |a_theme|
-          f.puts format(theme_format, a_theme['id'], a_theme['name'], a_theme['group'], a_theme['version'], a_theme['locale'], a_theme['internalName'])
-        end
-        f.write(NEWLINE + themes_yaml)
-      end
-    end
-    
+  #   def write_themes
+  #     themes_path                                 = '/FMPReport/File/ThemeCatalog'
+  #     themes_yaml                                 = element2yaml(@report.xpath(themes_path))
+  #     themes                                      = @report.xpath(themes_path + "/*[name()='Theme']")
+  #     File.open(@themes_filepath, 'w') do |f|
+  #       theme_format = "  %6s  %-20s  %-20s  %6s  %-20s  %-20s"
+  #       f.puts format(theme_format, "id", "Name", "Group", "Version", "Locale", "Internal Name")
+  #       f.puts format(theme_format, "--", "----", "-----", "-------", "------", "-------------")
+  #       themes.each do |a_theme|
+  #         f.puts format(theme_format, a_theme['id'], a_theme['name'], a_theme['group'], a_theme['version'], a_theme['locale'], a_theme['internalName'])
+  #       end
+  #       f.write(NEWLINE + themes_yaml)
+  #     end
+  #   end
+
+
   end
 
 end

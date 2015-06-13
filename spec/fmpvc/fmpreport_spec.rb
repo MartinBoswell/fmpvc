@@ -270,7 +270,7 @@ describe 'FMPReport' do
     
     end
 
-    describe '#write_menus', :focus => true do
+    describe '#write_menus', :focus => false do
     
       let (:menu_folder)                    { find_path_with_base(@report2.report_dirpath + "/CustomMenus") }
       let (:menu_file)                      { find_path_with_base(menu_folder + '/View Copy') }
@@ -375,7 +375,7 @@ describe 'FMPReport' do
     
     end
   
-    describe '#write_themes', :focus => false do
+    describe '#write_themes', :focus => true do
           
       let (:themes_file)               { find_path_with_base(@report2.report_dirpath + "/Themes") }
       let (:themes_file_content)       { IO.read(themes_file) }
