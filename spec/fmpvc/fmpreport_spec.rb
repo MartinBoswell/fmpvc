@@ -57,9 +57,9 @@ describe 'FMPReport' do
       actor_listing_content = IO.read(report2.report_dirpath + "/Scripts/Actors/Actor Listing.txt")
       expect(actor_listing_content).to match(%r{Go to Layout \[ “Actors” \(Actors\) \]})
     end
-    it "should remove carrige returns in the middle of the script steps" do   # e.g. in Sort Records, GTRR
+    it "should remove carrige returns in the middle of the script steps" do   # e.g. in Sort Records, GTRR.  They're \r in xml, but \n when extracted.
       actor_show_roles_content = IO.read(report2.report_dirpath + "/Scripts/Actors/Actor | show roles.txt")
-      sort_record_regex = %r{Sort Records \[ Keep records in sorted order; Specified Sort Order\: Roles::name\; ascending \]\[ Restore\; No dialog \]} 
+      sort_record_regex = %r{Sort Records \[ Keep records in sorted order; Specified Sort Order: Roles::name; ascending \]\[ Restore; No dialog \]} 
       expect(actor_show_roles_content).to match(sort_record_regex)
     end
     

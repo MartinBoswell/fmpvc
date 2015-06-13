@@ -8,14 +8,14 @@ module FMPVC
     attr_reader :content, :type, :text_dir, :text_filename, :report_dirpath
     
     def initialize(report_filename, ddr)
-      report_dirpath = "#{ddr.base_dir}/#{report_filename}"  # location of the fmpfilename.xml file
+      report_dirpath    = "#{ddr.base_dir}/#{report_filename}"  # location of the fmpfilename.xml file
       raise(RuntimeError, "Error: can't find the report file, #{report_dirpath}") unless File.readable?(report_dirpath)
       
-      @content = IO.read(report_dirpath, mode: 'rb:UTF-16:UTF-8') # transcode is specifically for a spec content match
-      @text_dir = "#{ddr.base_dir}../fmp_text"
-      @text_filename = fs_sanitize(report_filename)
-      @report_dirpath = "#{@text_dir}/#{@text_filename}"
-      @scripts_dirpath = @report_dirpath + "/Scripts"
+      @content          = IO.read(report_dirpath, mode: 'rb:UTF-16:UTF-8') # transcode is specifically for a spec content match
+      @text_dir         = "#{ddr.base_dir}../fmp_text"
+      @text_filename    = fs_sanitize(report_filename)
+      @report_dirpath   = "#{@text_dir}/#{@text_filename}"
+      @scripts_dirpath  = @report_dirpath + "/Scripts"
       
       self.parse
       self.write_dir
@@ -33,15 +33,15 @@ module FMPVC
     end
 
     def fs_sanitize(text_string)
-      text_string.gsub(%r{[.\/\\]}mx, '_') # just remove [ . / \ ] for now.
+      text_string.gsub(%r{[\/]}mx, '_') # just remove [ / ] for now.
     end
     
     # e.g. /FMPReport/File/ScriptCatalog , /FMPReport/File/ScriptCatalog/Group[1]/Group
     # return: "/Actors/Actor Triggers"
     def disk_path_from_base(object_base, object_xpath, path = '')
       return "#{path}" if object_xpath == object_base
-      curent_node_filename = @report.xpath("#{object_xpath}").first['name']
-      parent_node_xpath = @report.xpath("#{object_xpath}/..").first.path
+      curent_node_filename   = @report.xpath("#{object_xpath}").first['name']
+      parent_node_xpath      = @report.xpath("#{object_xpath}/..").first.path
       disk_path_from_base(object_base,  parent_node_xpath, "/#{curent_node_filename}" + "#{path}" )
     end
     
@@ -73,8 +73,9 @@ module FMPVC
       end
     end
     
+    
+    
   end
 
 end
 
-#  can FMP folders have scripts and folders with same name?  rename 2nd one with a DUP suffix
