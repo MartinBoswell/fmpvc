@@ -97,7 +97,22 @@ module FMPVC
     
     def element2yaml(xml_element)
   		element_xml							= xml_element.to_xml({:encoding => 'UTF-8'}) # REMEMBER: the encoding
-  		element_hash						= Hash.from_xml(element_xml)
+      begin
+        element_xml_utf8      = element_xml.to_s.force_encoding("UTF-8")
+    		element_hash						= Hash.from_xml(element_xml_utf8)
+      rescue Exception => exception
+        puts "--------------------============"
+        puts "Trying to parse: "
+        puts "#{xml_element}"
+        puts "element_xml class #{element_xml.class}, encoding: #{element_xml.encoding}"
+        puts "element_xml_utf8 class #{element_xml_utf8.class}, encoding: #{element_xml_utf8.encoding}"
+        puts "--------------------============"
+        puts "Error:" 
+        puts "#{exception}"
+        puts "--------------------============"
+        
+
+      end
   		element_yaml						= element_hash.to_yaml
     end
     
@@ -563,10 +578,12 @@ module FMPVC
         theme_format = "  %6s  %-20s  %-20s  %6s  %-20s  %-20s"
         f.puts format(theme_format, "id", "Name", "Group", "Version", "Locale", "Internal Name")
         f.puts format(theme_format, "--", "----", "-----", "-------", "------", "-------------")
+        yaml_output = YAML_START
         themes.each do |a_theme|
           f.puts format(theme_format, a_theme['id'], a_theme['name'], a_theme['group'], a_theme['version'], a_theme['locale'], a_theme['internalName'])
+          yaml_output += element2yaml(a_theme).gsub(%r{\A --- \n}mx, '')
         end
-        f.write(NEWLINE + element2yaml(themes))
+        f.write(NEWLINE + yaml_output)
       end
     end
     
