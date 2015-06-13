@@ -98,17 +98,17 @@ describe 'FMPReport' do
       end
         
 
-      it "should clean previous data, i.e. clean the fmp_text folders" do
-        # create a file in the fmp_text dir
-        @ddr3 = double('ddr', :base_dir_ddr => :'./spec/data/test_3/fmp_ddr/') 
-        temp_test_file = "#{@ddr3.base_dir_ddr}/../fmp_text/#{report_file}/TEST_FILE_FOR_CLEANING.txt"
-        FileUtils.mkdir_p(@ddr3.base_dir_ddr.to_s + "../fmp_text/Movies_fmp12.xml")
-        File.open(temp_test_file, 'w') { |f| f.puts 'For dir clean test.\n'}
-        # create a ddr
-        new_report = FMPReport.new(report_file, @ddr3)
-        # file should have been cleaned
-        expect(File.exists?(temp_test_file)).to be false
-      end
+      # it "should clean previous data, i.e. clean the fmp_text folders" do
+      #   # create a file in the fmp_text dir
+      #   @ddr3 = double('ddr', :base_dir_ddr => :'./spec/data/test_3/fmp_ddr/')
+      #   temp_test_file = "#{@ddr3.base_dir_ddr}/../fmp_text/#{report_file}/TEST_FILE_FOR_CLEANING.txt"
+      #   FileUtils.mkdir_p(@ddr3.base_dir_ddr.to_s + "../fmp_text/Movies_fmp12.xml")
+      #   File.open(temp_test_file, 'w') { |f| f.puts 'For dir clean test.\n'}
+      #   # create a ddr
+      #   new_report = FMPReport.new(report_file, @ddr3)
+      #   # file should have been cleaned
+      #   expect(File.exists?(temp_test_file)).to be false
+      # end
     end
 
     describe '#write_value_lists', :focus => false do
@@ -400,6 +400,34 @@ describe 'FMPReport' do
     
   end
 
+  it "should clean previous data, i.e. clean the fmp_text folders" do
+    report_file = 'Movies_fmp12.xml'
+    @ddr3 = double('ddr', :base_dir_ddr => :'./spec/data/test_3/fmp_ddr/') 
+
+    # create a file in the fmp_text dir
+    temp_test_file = "#{@ddr3.base_dir_ddr}/../fmp_text/#{report_file}/TEST_FILE_FOR_CLEANING.txt"
+    FileUtils.mkdir_p(@ddr3.base_dir_ddr.to_s + "../fmp_text/Movies_fmp12.xml")
+    File.open(temp_test_file, 'w') { |f| f.puts 'For dir clean test.\n'}
+
+    # create a ddr
+    new_report = FMPReport.new(report_file, @ddr3)
+
+    # now, the file should have been cleaned (i.e. removed)
+    expect(File.exists?(temp_test_file)).to be false
+  end
+
+  describe '#write_all_objects' do
+    let (:ddr4)         { double('ddr', :base_dir_ddr => :'./spec/data/test_4/fmp_ddr/') }
+    let (:empty_report) { FMPReport.new("Untitled_fmp12.xml", ddr4) }
+
+    it "should handle files without some of the fmpobjects" do
+      empty_report.write_all_objects # basically, expect that this doesn't raise runtime error
+      expect(File.directory?( find_path_with_base(empty_report.report_dirpath) )).to be true
+    end
+  end
+  
+  
+  
 end
 
 =begin

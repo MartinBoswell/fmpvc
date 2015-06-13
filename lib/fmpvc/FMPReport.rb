@@ -148,12 +148,13 @@ module FMPVC
     end
     
     def write_obj_to_disk(objs, full_path)
-      # puts "#{objs.class}    -    #{full_path}"
       if full_path =~ %r{\.txt}
         # single file objects
         File.open(full_path, 'w') do |f|
-          f.write(objs.first[:content] + NEWLINE) unless objs.first[:content] == ''
-          f.write(NEWLINE + objs.first[:yaml])
+          unless objs.empty? 
+            f.write(objs.first[:content] + NEWLINE) unless objs.first[:content] == '' 
+            f.write(NEWLINE + objs.first[:yaml])
+          end
         end
       else
         # multi-file objects in directory
