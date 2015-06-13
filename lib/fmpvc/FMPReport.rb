@@ -12,7 +12,7 @@ module FMPVC
   
   class FMPReport
     
-    attr_reader :content, :type, :text_dir, :text_filename, :report_dirpath
+    attr_reader :content, :type, :text_dir, :text_filename, :report_dirpath, :scripts, :value_lists, :tables
     
     def initialize(report_filename, ddr)
       report_dirpath    = "#{ddr.base_dir}/#{report_filename}"  # location of the fmpfilename.xml file
@@ -27,7 +27,7 @@ module FMPVC
       
       
       # @tables_dirpath               = @report_dirpath + "/Tables"
-      @scripts_dirpath              = @report_dirpath + "/Scripts"
+      # @scripts_dirpath              = @report_dirpath + "/Scripts"
       # @value_lists_dirpath          = @report_dirpath + "/ValueLists"
       @custom_functions_dirpath     = @report_dirpath + "/CustomFunctions"
       @accounts_filepath            = @report_dirpath + "/Accounts.txt"
@@ -45,14 +45,18 @@ module FMPVC
       self.parse
       self.clean_dir
       self.write_dir
-      self.write_scripts
+      
+      # self.write_scripts
+      @scripts = parse_fms_obj("/FMPReport/File/ScriptCatalog", "/*[name()='Group' or name()='Script']", @script_content)
+      write_obj_to_disk(@scripts, @report_dirpath + "/Scripts")
+      #
 
       # self.parse_fms_obj("/FMPReport/File/ValueListCatalog/*[name()='ValueList']", @value_list_content) # write_value_lists
-      @value_lists = parse_fms_obj("/FMPReport/File/ValueListCatalog/*[name()='ValueList']", @value_list_content)
-      write_obj_to_disk(@value_lists, "/ValueLists")
+      @value_lists = parse_fms_obj("/FMPReport/File/ValueListCatalog", "/*[name()='ValueList']", @value_list_content)
+      write_obj_to_disk(@value_lists, @report_dirpath + "/ValueLists")
       # self.write_tables
-      @tables = parse_fms_obj("/FMPReport/File/BaseTableCatalog/*[name()='BaseTable']", @table_content)
-      write_obj_to_disk(@tables, "/Tables")
+      @tables = parse_fms_obj("/FMPReport/File/BaseTableCatalog", "/*[name()='BaseTable']", @table_content)
+      write_obj_to_disk(@tables, @report_dirpath + "/Tables")
 
       self.write_custom_functions
       self.write_accounts
@@ -136,44 +140,62 @@ module FMPVC
         content
       end
       
+      @script_content = Proc.new do |a_script|
+        content = ''
+        a_script.xpath("./StepList/Step/StepText").each {|t| content += t.text.gsub(%r{\n},'') + "\n" } # remove \n from middle of steps
+        content
+      end
     end
 
-    def parse_fms_obj(object_xpath, obj_content)
+    def parse_fms_obj(object_base, object_nodes, obj_content)
       objects_parsed = Array.new
-      objects = @report.xpath(object_xpath)
+      objects = @report.xpath("#{object_base}#{object_nodes}")
       objects.each do |an_obj|
-        obj_name                    = an_obj['name']
+        obj_name                    = an_obj['name'] 
         obj_id                      = an_obj['id']
         sanitized_obj_name          = fs_sanitize(obj_name)
         sanitized_obj_name_id       = fs_id(sanitized_obj_name, obj_id)
         sanitized_obj_name_id_ext   = sanitized_obj_name_id + '.txt'
-  
-        content = obj_content.call(an_obj)
-        yaml = element2yaml(an_obj)
-  
+        
         obj_parsed = {
             :name        => sanitized_obj_name_id_ext                        \
           , :type        => :file                                            \
           , :xpath       => an_obj.path                                      \
-          , :content     => content                                          \
-          , :yaml        => yaml                                             \
         }
+        
+        # if it's a Group, then make a directory for it, else make a file
+        if an_obj.name == 'Group'
+          obj_parsed[:type]     = :dir
+          obj_parsed[:name]     = sanitized_obj_name_id
+          obj_parsed[:children] = parse_fms_obj(an_obj.path, object_nodes, obj_content) 
+        else  
+          obj_parsed[:content]  = obj_content.call(an_obj)
+          obj_parsed[:yaml]     = element2yaml(an_obj)
+        end
+        
         objects_parsed.push(obj_parsed)
       end
       objects_parsed
     end
     
-    def write_obj_to_disk(objs, disk_location)
-      full_path = @report_dirpath + disk_location
+    def write_obj_to_disk(objs, full_path)
       if objs.class == Hash
         # single file objects
+        File.open("#{full_path}/#{objs[:name]}", 'w') do |f|
+          f.write(objs[:content] + NEWLINE) unless objs[:content] == ''
+          f.write(NEWLINE + objs[:yaml])
+        end
       elsif objs.class == Array
         # multi-file objects in directory
         FileUtils.mkdir_p(full_path) unless File.directory?(full_path)
         objs.each do |obj|
-          File.open("#{full_path}/#{obj[:name]}", 'w') do |f|
-            f.write(obj[:content] + NEWLINE) unless obj[:content] == ''
-            f.write(NEWLINE + obj[:yaml])
+          if obj[:type] == :file
+            File.open("#{full_path}/#{obj[:name]}", 'w') do |f|
+              f.write(obj[:content] + NEWLINE) unless obj[:content] == ''
+              f.write(NEWLINE + obj[:yaml])
+            end
+          elsif obj[:type] == :dir
+            write_obj_to_disk(obj[:children], full_path + "/#{obj[:name]}")
           end
         end
       end
@@ -186,37 +208,37 @@ module FMPVC
     ### create files
     ###
     
-    def write_scripts(object_xpath = '/FMPReport/File/ScriptCatalog')
-      current_disk_folder = disk_path_from_base('/FMPReport/File/ScriptCatalog', object_xpath)
-      
-      script_groups = @report.xpath("#{object_xpath}/*[name()='Group']")
-      script_groups.each do |a_folder|
-        script_dirname         = a_folder['name']
-        script_dir_id          = a_folder['id']
-        sanitized_dirname      = fs_sanitize(script_dirname)
-        sanitized_dirname_id   = fs_id(sanitized_dirname, script_dir_id)
-        full_folder_path = @scripts_dirpath + "#{current_disk_folder}/#{sanitized_dirname_id}"
-        FileUtils.mkdir_p(full_folder_path)
-        write_scripts(a_folder.path)
-      end
-      
-      scripts = @report.xpath("#{object_xpath}/*[name()='Script']")
-      scripts.each do |a_script|
-        script_name    = a_script['name']
-        script_id      = a_script['id']
-        this_script_disk_path = @scripts_dirpath + "/#{current_disk_folder}"
-        FileUtils.mkdir_p(this_script_disk_path) unless File.directory?(this_script_disk_path)
-        
-        # write the text value of the script line to the new script file
-        sanitized_script_name        = fs_sanitize(script_name)
-        sanitized_script_name_id     = fs_id(sanitized_script_name, script_id)
-        sanitized_script_name_id_ext = sanitized_script_name_id + '.txt'
-        File.open(this_script_disk_path + "/#{sanitized_script_name_id_ext}", 'w') do |f| 
-          a_script.xpath("./StepList/Step/StepText").each {|t| f.puts t.text.gsub(%r{\n},'') } # remove \n from middle of steps
-          f.write(NEWLINE + element2yaml(a_script))
-        end
-      end
-    end
+    # def write_scripts(object_xpath = '/FMPReport/File/ScriptCatalog')
+    #   current_disk_folder = disk_path_from_base('/FMPReport/File/ScriptCatalog', object_xpath)
+    #
+    #   script_groups = @report.xpath("#{object_xpath}/*[name()='Group']")
+    #   script_groups.each do |a_folder|
+    #     script_dirname         = a_folder['name']
+    #     script_dir_id          = a_folder['id']
+    #     sanitized_dirname      = fs_sanitize(script_dirname)
+    #     sanitized_dirname_id   = fs_id(sanitized_dirname, script_dir_id)
+    #     full_folder_path = @scripts_dirpath + "#{current_disk_folder}/#{sanitized_dirname_id}"
+    #     FileUtils.mkdir_p(full_folder_path)
+    #     write_scripts(a_folder.path)
+    #   end
+    #
+    #   scripts = @report.xpath("#{object_xpath}/*[name()='Script']")
+    #   scripts.each do |a_script|
+    #     script_name    = a_script['name']
+    #     script_id      = a_script['id']
+    #     this_script_disk_path = @scripts_dirpath + "/#{current_disk_folder}"
+    #     FileUtils.mkdir_p(this_script_disk_path) unless File.directory?(this_script_disk_path)
+    #
+    #     # write the text value of the script line to the new script file
+    #     sanitized_script_name        = fs_sanitize(script_name)
+    #     sanitized_script_name_id     = fs_id(sanitized_script_name, script_id)
+    #     sanitized_script_name_id_ext = sanitized_script_name_id + '.txt'
+    #     File.open(this_script_disk_path + "/#{sanitized_script_name_id_ext}", 'w') do |f|
+    #       a_script.xpath("./StepList/Step/StepText").each {|t| f.puts t.text.gsub(%r{\n},'') } # remove \n from middle of steps
+    #       f.write(NEWLINE + element2yaml(a_script))
+    #     end
+    #   end
+    # end
     
     # def write_value_lists(object_xpath = "/FMPReport/File/ValueListCatalog/*[name()='ValueList']", obj_content = value_list_content)
     #   parse_fms_obj(object_xpath, obj_content)
@@ -261,29 +283,29 @@ module FMPVC
       
     end
     
-    def write_tables(object_xpath = '/FMPReport/File/BaseTableCatalog')
-      FileUtils.mkdir_p(@tables_dirpath) unless File.directory?(@tables_dirpath)
-      
-      tables = @report.xpath("#{object_xpath}/*[name()='BaseTable']")
-      tables.each do |a_table|
-        table_name                                    = a_table['name']
-        table_id                                      = a_table['id']
-        sanitized_table_name                          = fs_sanitize(table_name)
-        sanitized_table_name_id                       = fs_id(sanitized_table_name, table_id)
-        sanitized_table_name_id_ext                   = sanitized_table_name_id + '.txt'
-        table_format                                  = "%6d   %-25s   %-15s  %-15s   %-50s"
-        table_header_format                           = table_format.gsub(%r{d}, 's')
-        File.open(@tables_dirpath + "/#{sanitized_table_name_id_ext}", 'w') do |f|
-          f.puts format(table_header_format, "id", "Field Name", "Data Type", "Field Type", "Comment")
-          f.puts format(table_header_format, "--", "----------", "---------", "----------", "-------")
-          a_table.xpath("//BaseTable[@name='#{a_table['name']}']/FieldCatalog/*[name()='Field']").each do |t| 
-            t_comment = t.xpath("./Comment").text
-            f.puts format(table_format, t['id'], t['name'], t['dataType'], t['fieldType'], t_comment)
-          end
-          f.write(NEWLINE + element2yaml(a_table)) # a_table.path) # 
-        end
-      end
-    end
+    # def write_tables(object_xpath = '/FMPReport/File/BaseTableCatalog')
+    #   FileUtils.mkdir_p(@tables_dirpath) unless File.directory?(@tables_dirpath)
+    #
+    #   tables = @report.xpath("#{object_xpath}/*[name()='BaseTable']")
+    #   tables.each do |a_table|
+    #     table_name                                    = a_table['name']
+    #     table_id                                      = a_table['id']
+    #     sanitized_table_name                          = fs_sanitize(table_name)
+    #     sanitized_table_name_id                       = fs_id(sanitized_table_name, table_id)
+    #     sanitized_table_name_id_ext                   = sanitized_table_name_id + '.txt'
+    #     table_format                                  = "%6d   %-25s   %-15s  %-15s   %-50s"
+    #     table_header_format                           = table_format.gsub(%r{d}, 's')
+    #     File.open(@tables_dirpath + "/#{sanitized_table_name_id_ext}", 'w') do |f|
+    #       f.puts format(table_header_format, "id", "Field Name", "Data Type", "Field Type", "Comment")
+    #       f.puts format(table_header_format, "--", "----------", "---------", "----------", "-------")
+    #       a_table.xpath("//BaseTable[@name='#{a_table['name']}']/FieldCatalog/*[name()='Field']").each do |t|
+    #         t_comment = t.xpath("./Comment").text
+    #         f.puts format(table_format, t['id'], t['name'], t['dataType'], t['fieldType'], t_comment)
+    #       end
+    #       f.write(NEWLINE + element2yaml(a_table)) # a_table.path) #
+    #     end
+    #   end
+    # end
 
     def write_accounts
       account_path = '/FMPReport/File/AccountCatalog'
