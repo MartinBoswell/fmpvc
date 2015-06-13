@@ -4,6 +4,8 @@
 require 'fmpvc'
 include FMPVC
 
+time_start = Time.new
+
 ddr_dir = './fmp_ddr'
 ddr = DDR.new(ddr_dir)
 ddr.process_reports
@@ -20,6 +22,10 @@ if tree_command
    puts "Creating tree.txt."
    `#{tree_command} -F > tree.txt`
 end
+
+time_end = Time.new
+puts "Processing complete."  
+puts "Elapsed time: #{(time_end - time_start).round(0)} seconds."
 
 puts
 
