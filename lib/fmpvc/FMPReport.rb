@@ -33,6 +33,7 @@ module FMPVC
       @menu_sets_dirpath            = @report_dirpath + "/CustomMenuSets"
       @menus_dirpath                = @report_dirpath + "/CustomMenus"
       @file_access_filepath         = @report_dirpath + "/FileAccess.txt"
+      @data_sources_filepath        = @report_dirpath + "/ExternalDataSources.txt"
       
       self.parse
       self.clean_dir
@@ -48,6 +49,7 @@ module FMPVC
       self.write_menu_sets
       self.write_menus
       self.write_file_access
+      self.write_external_data_sources
       
     end
 
@@ -410,12 +412,12 @@ module FMPVC
     end
       
     def write_file_access
-      file_access_path = '/FMPReport/File/AuthFileCatalog'
-      file_access = @report.xpath("#{file_access_path}")
-      inbound_access = file_access.xpath("./Inbound/*[name()='InboundAuthorization']")
-      outbound_access = file_access.xpath("./Outbound/*[name()='OutboundAuthorization']")
-      access_format = "          %6d  %-25s  %-25s  %-25s"
-      access_format_header = access_format.gsub(%r{d}, 's')
+      file_access_path                            = '/FMPReport/File/AuthFileCatalog'
+      file_access                                 = @report.xpath("#{file_access_path}")
+      inbound_access                              = file_access.xpath("./Inbound/*[name()='InboundAuthorization']")
+      outbound_access                             = file_access.xpath("./Outbound/*[name()='OutboundAuthorization']")
+      access_format                               = "          %6d  %-25s  %-25s  %-25s"
+      access_format_header                        = access_format.gsub(%r{d}, 's')
       File.open(@file_access_filepath, 'w') do |f|
         auth_requirement = file_access.first['requireAuthorization']
         f.puts "Authorization required: #{auth_requirement}"
@@ -438,7 +440,31 @@ module FMPVC
       
     end
     
-    
+    def write_external_data_sources
+      data_sources_path = '/FMPReport/File/ExternalDataSourcesCatalog'
+      data_sources = @report.xpath(data_sources_path)
+      file_references = data_sources.xpath("./*[name()='FileReference']")
+      odbc_sources = data_sources.xpath("./*[name()='OdbcDataSource']")
+      file_references_format = "   %6d  %-25s  %-25s"
+      file_references_header_format = file_references_format.gsub(%r{d},'s')
+      odbc_source_format = "   %6d  %-25s  %-25s  %-25s"
+      odbc_source_header_format = odbc_source_format.gsub(%r{d},'s')
+      File.open(@data_sources_filepath, 'w') do |f|
+        f.puts format(file_references_header_format, "id", "File Reference", "Path List")
+        f.puts format(file_references_header_format, "--", "--------------", "---------")
+        file_references.each do |r|
+          f.puts format(file_references_format, r['id'], r['name'], r['pathList'])
+        end
+        f.puts
+        f.puts format(odbc_source_header_format, "id", "ODBC Source", "DSN", "Link")
+        f.puts format(odbc_source_header_format, "--", "-----------", "---", "----")
+        odbc_sources.each do |s|
+          f.puts format(odbc_source_format, s['id'], s['name'], s['DSN'], s['link'])
+        end
+        f.write(NEWLINE + element2yaml(data_sources))
+      end
+      
+    end
     
     
     

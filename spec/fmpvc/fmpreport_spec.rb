@@ -241,7 +241,7 @@ describe 'FMPReport' do
     
   end
   
-  describe '#write_file_access', :focus => false do
+  describe '#write_file_access', :focus => true do
     
     let (:file_access_file)               { find_path_with_base(report2.report_dirpath + "/FileAccess") }
     let (:file_access_file_content)       { IO.read(file_access_file) }
@@ -253,11 +253,31 @@ describe 'FMPReport' do
       expect(file_access_file_content).to match(%r{requireAuthorization:\ 'True' \s+ Inbound: \s+ InboundAuthorization: \s+ id:\ '2'}mx)
     end
     it "should list file access parameters" do 
-      expect(file_access_file_content).to match(%r{  }mx)
+      expect(file_access_file_content).to match(%r{2 \s+ 2015-5-11\ 5:49:52\ PM \s+ Admin \s+ Movies\ Clone}mx)
     end
     
   end
   
+  describe '#write_external_data_sources', :focus => true do
+    
+    let (:data_source_file)               { find_path_with_base(report2.report_dirpath + "/ExternalDataSources") }
+    let (:data_source_file_content)       { IO.read(data_source_file) }
+    
+    it "should create an external data source file" do
+      expect(File.exists?(data_source_file)).to be true
+    end
+    it "should contain YAML" do
+      expect(data_source_file_content).to match(%r{pathList:\ file:../../FMServer_Sample \s+ name:\ Local\ Server_Sample \s+ OdbcDataSource: \s+ link:\ Movies_fmp12.xml}mx)
+    end
+
+    it "should show data source list" do 
+      expect(data_source_file_content).to match(%r{3 \s+ ODBC\ Testing \s+ ODBC_Testing \s+ Movies_fmp12.xml}mx)
+    end
+
+    
+  end
+  
+
   describe '#element2yaml'
     # Internal method;  no interface => no unit tests
     # it "should take a Nokogiri::XML::Element and return YAML"
