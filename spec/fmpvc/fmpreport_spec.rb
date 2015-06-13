@@ -399,10 +399,10 @@ describe 'FMPReport' do
         expect { @report2.post_notification('an object', 'Updating') }.to output("Updating an object\n").to_stdout
       end
       it "should update user on progress when reports are parsed" do
-        expect { @report2.parse_fmp_obj( "/FMPReport/File/AccountCatalog", "/*[name()='Account']", Proc.new {"bogus\naccount\ncontent"}, true ) }.to output("Parsing AccountCatalog\n").to_stdout
+        expect { @report2.parse_fmp_obj( "/FMPReport/File/AccountCatalog", "/*[name()='Account']", Proc.new {"bogus\naccount\ncontent"}, true ) }.to output("  Parsing AccountCatalog\n").to_stdout
       end
       it "should update user on progress when reports are written to disk" do
-        expect { @report2.write_obj_to_disk([], @report2.report_dirpath + "/Tables") }.to output("Writing Movies_fmp12.xml/Tables\n").to_stdout
+        expect { @report2.write_obj_to_disk([], @report2.report_dirpath + "/Tables") }.to output("  Writing Movies_fmp12.xml/Tables\n").to_stdout
       end
     end
     

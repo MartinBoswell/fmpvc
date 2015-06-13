@@ -4,20 +4,9 @@
 require 'fmpvc'
 include FMPVC
 
-# create a DDR
-# puts
-# puts "Creating new DDR..."
 ddr_dir = './fmp_ddr'
 ddr = DDR.new(ddr_dir)
-
-# process FMPReport files
-# puts
-# puts "Creating FMPReports..."
 ddr.process_reports
-
-# write report files to disk
-# puts
-# puts "Write report files to disk..."
 ddr.write_reports
 
 # create a tree file, if available
