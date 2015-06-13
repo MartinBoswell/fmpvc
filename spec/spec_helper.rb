@@ -17,6 +17,7 @@ RSpec.configure do |config|
 
 end
 
+# Facilitate file matching w/out regard for id and extension (which can easily change)
 def find_path_with_base(f)
   Dir.glob(f + "*").first
 end

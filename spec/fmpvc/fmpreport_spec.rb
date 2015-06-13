@@ -35,7 +35,6 @@ describe 'FMPReport' do
 
   describe '#write_dir' do  
     it "should create a filename_fmp12 directory on disk" do
-      # report1.write_dir
       expect(File.readable?(report1.report_dirpath)).to be true
       expect(File.readable?(report2.report_dirpath)).to be true
     end  
@@ -43,8 +42,6 @@ describe 'FMPReport' do
 
   describe '#write_scripts' do
     it "should create a script file on disk" do
-      # report1.write_scripts
-      # expect(Dir.glob(report2.report_dirpath + "/Scripts/Actors/*.txt").count).to eq(2)
       expect(Dir.glob(report2.report_dirpath + "/Scripts/Actors (id 6)/*.txt").count).to eq(2)
     end
     it "should create script folders" do
@@ -80,12 +77,11 @@ describe 'FMPReport' do
       expect(sanitzed_files[1]).to match(%r{Movie.Film Display})
     end
         
-        
-        
+
     it "should clean previous data, i.e. clean the fmp_text folders" do
       # create a file in the fmp_text dir
       temp_test_file = "#{ddr2.base_dir}/../fmp_text/#{report_file}/TEST_FILE_FOR_CLEANING.txt"
-      File.new(temp_test_file, 'w') { |f| puts 'For dir clean test.\n'}
+      File.open(temp_test_file, 'w') { |f| f.puts 'For dir clean test.\n'}
       # create a ddr
       new_report = FMPReport.new(report_file, ddr2)
       # file should have been cleaned
@@ -94,14 +90,41 @@ describe 'FMPReport' do
   end
 
   
+  describe '#write_value_lists' do
+  
+    it "should create a value list file on disk" do
+      expect(Dir.glob(report2.report_dirpath + "/ValueLists/*.txt").count).to be >=3
+    end
+    it "should create value lists with good content" do
+      value_list_content = IO.read(find_path_with_base(report2.report_dirpath + "/ValueLists/Favorite Roles"))
+      expect(value_list_content).to match(%r{Randall McMurphy\nLone Watie\n- \n})
+    end
+    it "should handle non-custom value lists" 
+    
+  end
 
+  describe '#write_custom_functions' do
+  
+    it "should create a custom function file on disk" do
+      expect(Dir.glob(report2.report_dirpath + "/CustomFunctions/*.txt").count).to be >=2
+    end
+    it "should create custom functions with good content" do
+      custom_function_content = IO.read(find_path_with_base(report2.report_dirpath + "/CustomFunctions/ramones_name"))
+      expect(custom_function_content).to match(%r{actor_first & " Ramone"})
+    end
+    it "should reproduce the original whitespace formatting" do
+      custom_function_content = IO.read(find_path_with_base(report2.report_dirpath + "/CustomFunctions/alphabet_up_to_letter"))
+      expect(custom_function_content).to match(%r{Code\(letter\) = 65 ; "A"})
+    end
+    
+    
+  end
 
 
   describe '#write_tables' do
   
     it "should create a table file on disk"
-  
-  
+    
   end
 
 end

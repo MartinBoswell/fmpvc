@@ -11,16 +11,20 @@ module FMPVC
       report_dirpath    = "#{ddr.base_dir}/#{report_filename}"  # location of the fmpfilename.xml file
       raise(RuntimeError, "Error: can't find the report file, #{report_dirpath}") unless File.readable?(report_dirpath)
       
-      @content          = IO.read(report_dirpath, mode: 'rb:UTF-16:UTF-8') # transcode is specifically for a spec content match
-      @text_dir         = "#{ddr.base_dir}../fmp_text"
-      @text_filename    = fs_sanitize(report_filename)
-      @report_dirpath   = "#{@text_dir}/#{@text_filename}"
-      @scripts_dirpath  = @report_dirpath + "/Scripts"
+      @content                     = IO.read(report_dirpath, mode: 'rb:UTF-16:UTF-8') # transcode is specifically for a spec content match
+      @text_dir                    = "#{ddr.base_dir}../fmp_text"
+      @text_filename               = fs_sanitize(report_filename)
+      @report_dirpath              = "#{@text_dir}/#{@text_filename}"
+      @scripts_dirpath             = @report_dirpath + "/Scripts"
+      @value_lists_dirpath         = @report_dirpath + "/ValueLists"
+      @custom_functions_dirpath    = @report_dirpath + "/CustomFunctions"
       
       self.parse
       self.clean_dir
       self.write_dir
       self.write_scripts
+      self.write_value_lists
+      self.write_custom_functions
       
     end
 
@@ -79,7 +83,7 @@ module FMPVC
         script_name    = a_script['name']
         script_id      = a_script['id']
         this_script_disk_path = @scripts_dirpath + "/#{current_disk_folder}"
-        FileUtils.mkdir_p(this_script_disk_path) unless File.readable?(this_script_disk_path)
+        FileUtils.mkdir_p(this_script_disk_path) unless File.directory?(this_script_disk_path)
         
         # write the text value of the script line to the new script file
         sanitized_script_name        = fs_sanitize(script_name)
@@ -91,8 +95,40 @@ module FMPVC
       end
     end
     
+    def write_value_lists(object_xpath = '/FMPReport/File/ValueListCatalog')
+      FileUtils.mkdir_p(@value_lists_dirpath) unless File.directory?(@value_lists_dirpath)
+      
+      value_lists = @report.xpath("#{object_xpath}/*[name()='ValueList']")
+      value_lists.each do |a_value_list|
+        value_list_name                    = a_value_list['name']
+        value_list_id                      = a_value_list['id']
+        sanitized_value_list_name          = fs_sanitize(value_list_name)
+        sanitized_value_list_name_id       = fs_id(sanitized_value_list_name, value_list_id)
+        sanitized_value_list_name_id_ext   = sanitized_value_list_name_id + '.txt'
+        File.open(@value_lists_dirpath + "/#{sanitized_value_list_name_id_ext}", 'w') do |f|
+          a_value_list.xpath("./CustomValues/Text").each {|t| f.puts t.text}
+        end
+      end
+      
+    end
     
-    
+    def write_custom_functions(object_xpath = '/FMPReport/File/CustomFunctionCatalog')
+      FileUtils.mkdir_p(@custom_functions_dirpath) unless File.directory?(@custom_functions_dirpath)
+      
+      custom_functions = @report.xpath("#{object_xpath}/*[name()='CustomFunction']")
+      custom_functions.each do |a_custom_function|
+        custom_function_name                  = a_custom_function['name']
+        custom_function_id                    = a_custom_function['id']
+        sanitized_custom_function_name        = fs_sanitize(custom_function_name)
+        sanitized_custom_function_name_id     = fs_id(sanitized_custom_function_name, custom_function_id)
+        sanitized_custom_function_name_id_ext = sanitized_custom_function_name_id + '.txt'
+        File.open(@custom_functions_dirpath + "/#{sanitized_custom_function_name_id_ext}", 'w') do |f|
+          a_custom_function.xpath("./Calculation").each {|t| f.print t.text}
+        end
+      end
+      
+    end
+
   end
 
 end
