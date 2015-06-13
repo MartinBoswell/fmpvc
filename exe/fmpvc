@@ -2,9 +2,38 @@
 # Requires: Summary.xml, run from main directory (which includes fmp_{clone,ddr,text}/)
 
 require 'fmpvc'
+require 'optparse'
 include FMPVC
 
 FMPVC.configure {}
+
+OptionParser.new do |opts|
+  opts.on('-h', 'Show help message') do
+    puts opts
+    exit
+  end
+  opts.on('-d', '--ddr-dir <directory>', 'Look for DDR files in directory named <directory>.') do |d|
+    FMPVC.configuration.ddr_dirname = d
+  end
+  opts.on('-D', '--text-dir <directory>', 'Write text files in directory named <directory>.') do |d|
+    FMPVC.configuration.text_dirname = d
+  end
+  opts.on('-q', '--quiet', 'Suppress progress messages.') do
+    FMPVC.configuration.quiet = true
+  end
+  opts.on('-s', '--summary-file <filename>', 'Look for Summary file named <filename>.') do |s|
+    FMPVC.configuration.ddr_filename = s
+  end
+  opts.on('-t', '--tree-file <filename>', 'Set tree file name.') do |t|
+    FMPVC.configuration.tree_filename = t
+  end
+  opts.on('-T', '--no-tree', "Don't create a tree file.") do
+    FMPVC.configuration.tree_filename = nil
+  end
+  opts.on('-Y', '--no-yaml', 'Suppress YAML in text files.') do 
+    FMPVC.configuration.yaml = false
+  end
+end.parse!
 
 time_start = Time.new
 
