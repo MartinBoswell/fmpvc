@@ -17,5 +17,9 @@ RSpec.configure do |config|
 
 end
 
+def find_path_with_base(f)
+  Dir.glob(f + "*").first
+end
+
 # for delimiting spec runs in a shell
 3.times do puts "###################################################################" end

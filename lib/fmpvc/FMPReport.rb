@@ -33,7 +33,11 @@ module FMPVC
     end
 
     def fs_sanitize(text_string)
-      text_string.gsub(%r{[\/]}mx, '_') # just remove [ / ] for now.
+      text_string.gsub(%r{[\/]}, '_') # just remove [ / ] for now.
+    end
+    
+    def fs_id(fs_name, id)
+      fs_name + " (id #{id})"
     end
     
     # e.g. /FMPReport/File/ScriptCatalog , /FMPReport/File/ScriptCatalog/Group[1]/Group
@@ -41,8 +45,9 @@ module FMPVC
     def disk_path_from_base(object_base, object_xpath, path = '')
       return "#{path}" if object_xpath == object_base
       curent_node_filename   = @report.xpath("#{object_xpath}").first['name']
+      current_node_id        = @report.xpath("#{object_xpath}").first['id']
       parent_node_xpath      = @report.xpath("#{object_xpath}/..").first.path
-      disk_path_from_base(object_base,  parent_node_xpath, "/#{curent_node_filename}" + "#{path}" )
+      disk_path_from_base(object_base,  parent_node_xpath, "/#{fs_id(curent_node_filename, current_node_id)}" + "#{path}" )
     end
     
     def write_dir
@@ -55,19 +60,27 @@ module FMPVC
       
       script_groups = @report.xpath("#{object_xpath}/*[name()='Group']")
       script_groups.each do |a_folder|
-        full_folder_path = @scripts_dirpath + "#{current_disk_folder}/#{a_folder['name']}"
+        script_dirname         = a_folder['name']
+        script_dir_id          = a_folder['id']
+        sanitized_dirname      = fs_sanitize(script_dirname)
+        sanitized_dirname_id   = fs_id(sanitized_dirname, script_dir_id)
+        full_folder_path = @scripts_dirpath + "#{current_disk_folder}/#{sanitized_dirname_id}"
         FileUtils.mkdir_p(full_folder_path)
         write_scripts(a_folder.path)
       end
       
       scripts = @report.xpath("#{object_xpath}/*[name()='Script']")
       scripts.each do |a_script|
-        script_name = a_script["name"]
+        script_name    = a_script['name']
+        script_id      = a_script['id']
         this_script_disk_path = @scripts_dirpath + "/#{current_disk_folder}"
         FileUtils.mkdir_p(this_script_disk_path) unless File.readable?(this_script_disk_path)
         
         # write the text value of the script line to the new script file
-        File.open(this_script_disk_path + "/#{script_name}.txt", 'w') do |f| 
+        sanitized_script_name        = fs_sanitize(script_name)
+        sanitized_script_name_id     = fs_id(sanitized_script_name, script_id)
+        sanitized_script_name_id_ext = sanitized_script_name_id + '.txt'
+        File.open(this_script_disk_path + "/#{sanitized_script_name_id_ext}", 'w') do |f| 
           a_script.xpath("./StepList/Step/StepText").each {|t| f.puts t.text.gsub(%r{\n},'') } # remove \n from middle of steps
         end
       end

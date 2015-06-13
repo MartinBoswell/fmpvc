@@ -44,25 +44,44 @@ describe 'FMPReport' do
   describe '#write_scripts' do
     it "should create a script file on disk" do
       # report1.write_scripts
-      expect(Dir.glob(report2.report_dirpath + "/Scripts/Actors/*.txt").count).to eq(2)
+      # expect(Dir.glob(report2.report_dirpath + "/Scripts/Actors/*.txt").count).to eq(2)
+      expect(Dir.glob(report2.report_dirpath + "/Scripts/Actors (id 6)/*.txt").count).to eq(2)
     end
     it "should create script folders" do
       # report2.write_scripts
-      expect(File.directory?(report2.report_dirpath + "/Scripts/Actors")).to be true
+      expect(File.directory?(report2.report_dirpath + "/Scripts/Actors (id 6)")).to be true
     end
     it "should create nested script folders" do 
-      expect(File.directory?(report2.report_dirpath + "/Scripts/Actors/Actor Triggers")).to be true
+      expect(File.directory?(report2.report_dirpath + "/Scripts/Actors (id 6)/Actor Triggers (id 10)")).to be true
     end
     it "should create scripts with good content" do
-      actor_listing_content = IO.read(report2.report_dirpath + "/Scripts/Actors/Actor Listing.txt")
+      actor_listing_content = IO.read(find_path_with_base(report2.report_dirpath + "/Scripts/Actors (id 6)/Actor Listing (id 3)"))
       expect(actor_listing_content).to match(%r{Go to Layout \[ “Actors” \(Actors\) \]})
     end
-    it "should remove carrige returns in the middle of the script steps" do   # e.g. in Sort Records, GTRR.  They're \r in xml, but \n when extracted.
-      actor_show_roles_content = IO.read(report2.report_dirpath + "/Scripts/Actors/Actor | show roles.txt")
+    it "should remove carriage returns in the middle of the script steps" do   # e.g. in Sort Records, GTRR.  They're \r in xml, but \n when extracted.
+      actor_show_roles_content = IO.read(find_path_with_base(report2.report_dirpath + "/Scripts/Actors (id 6)/Actor | show roles (id 9)"))
       sort_record_regex = %r{Sort Records \[ Keep records in sorted order; Specified Sort Order: Roles::name; ascending \]\[ Restore; No dialog \]} 
       expect(actor_show_roles_content).to match(sort_record_regex)
     end
     
+    it "should create files and directories with id extensions" do
+      expect(find_path_with_base(report2.report_dirpath + "/Scripts/Actors (id 6)/Actor Listing (id 3)")).to match(%r{3})
+    end
+        
+    it "should properly create folders with identical FMP names in the same location" do 
+      expect(Dir.glob(report2.report_dirpath + "/Scripts/-----*").count).to eq(2)
+    end
+    it "should properly create scripts with identical FMP names in the same location" do
+      expect(Dir.glob(report2.report_dirpath + "/Scripts/----- (id 19)/pending - new Actor*").count).to eq(2)
+    end
+    it "should create scripts and folders that have slashes in their FMP names" do
+      sanitzed_files = Dir.glob(report2.report_dirpath + "/Scripts/Filesystem Sanitation (id 25)/*.txt")
+      expect(sanitzed_files[0]).to match(%r{Actor.Actress Information})
+      expect(sanitzed_files[1]).to match(%r{Movie.Film Display})
+    end
+        
+        
+        
     it "should clean previous data, i.e. clean the fmp_text folders"
 
 
