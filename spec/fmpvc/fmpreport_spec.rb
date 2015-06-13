@@ -185,10 +185,29 @@ describe 'FMPReport' do
       expect(ext_privileges_file_content).to match(%r{comment: \s+ Access\ via\ XML\ Web\ Publishing\ -\ FMS\ only \s+ name: \s+ fmxml}mx) # yaml
     end
   end
+  
+  describe '#write_relationships' do
+    
+    let (:relationships_file_content)       { IO.read(find_path_with_base(report2.report_dirpath + "/Relationships"))}
+    
+    it "should create a relationships file" do
+      expect(relationships_file_content).to match (%r{---\n})
+    end
+    it "should display the YAML" do
+      expect(relationships_file_content).to match(%r{table:\ Roles \s+ id:\ '5' \s+ name:\ _kF_movie_id}mx)
+    end
+    it "should list tables and TOs used by file" do
+      expect(relationships_file_content).to match(%r{Roles\ \(131\) \s+ Roles\ \(1065091\)}mx)
+    end
+    it "should list relationships between TOs" do 
+      expect(relationships_file_content).to match(%r{Roles::_kF_movie_id \s+ Equal \s+ Movies::_id}mx)
+    end
+    
+    
+  end
 
-  describe '#element2yaml' do
+  describe '#element2yaml'
     # Internal method;  no interface => no unit tests
     # it "should take a Nokogiri::XML::Element and return YAML"
-  end
 
 end
