@@ -8,9 +8,13 @@ include FMPVC
 FMPVC.configure {}
 
 OptionParser.new do |opts|
+  # opts.banner = "Usage: #{$0} [options] [base_directory_path]"
   opts.on('-h', 'Show help message') do
     puts opts
     exit
+  end
+  opts.on('-b', '--base-dir <directory>', 'Path to base directory (contains fmp_ddr/).') do |b|
+    FMPVC.configuration.ddr_basedir = b
   end
   opts.on('-d', '--ddr-dir <directory>', 'Look for DDR files in directory named <directory>.') do |d|
     FMPVC.configuration.ddr_dirname = d
@@ -37,7 +41,7 @@ end.parse!
 
 time_start = Time.new
 
-ddr_dir = FMPVC.configuration.ddr_dirname
+ddr_dir = [FMPVC.configuration.ddr_basedir, FMPVC.configuration.ddr_dirname].join('/')
 ddr = DDR.new(ddr_dir)
 ddr.process_reports
 ddr.write_summary
