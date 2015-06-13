@@ -11,7 +11,7 @@ module FMPVC
   
   class FMPReport
     
-    attr_reader :content, :type, :text_dir, :text_filename, :report_dirpath, :scripts, :value_lists, :tables
+    attr_reader :content, :type, :text_dir, :text_filename, :report_dirpath, :named_objects
     
     def initialize(report_filename, ddr)
       report_dirpath    = "#{ddr.base_dir}/#{report_filename}"  # location of the fmpfilename.xml file
@@ -28,66 +28,47 @@ module FMPVC
       self.clean_dir
       self.write_dir
       
-      ###
       ### hierarchical folder structure
-      ###
-      
-      @scripts = parse_fms_obj("/FMPReport/File/ScriptCatalog", "/*[name()='Group' or name()='Script']", @script_content)
-      write_obj_to_disk(@scripts, @report_dirpath + "/Scripts")
-      
-      @layouts = parse_fms_obj("/FMPReport/File/LayoutCatalog", "/*[name()='Group' or name()='Layout']", @layouts_content)
-      write_obj_to_disk(@layouts, @report_dirpath + "/Layouts")
-      
+      @scripts                  = parse_fms_obj( "/FMPReport/File/ScriptCatalog",               "/*[name()='Group' or name()='Script']",      @script_content               )
+      @layouts                  = parse_fms_obj( "/FMPReport/File/LayoutCatalog",               "/*[name()='Group' or name()='Layout']",      @layouts_content              )
+      ### single folder with files                                                                                                                                          
+      @value_lists              = parse_fms_obj( "/FMPReport/File/ValueListCatalog",           "/*[name()='ValueList']",                      @value_list_content           )
+      @tables                   = parse_fms_obj( "/FMPReport/File/BaseTableCatalog",           "/*[name()='BaseTable']",                      @table_content                )
+      @custom_functions         = parse_fms_obj( "/FMPReport/File/CustomFunctionCatalog",      "/*[name()='CustomFunction']",                 @custom_function_content      )
+      @menu_sets                = parse_fms_obj( "/FMPReport/File/CustomMenuSetCatalog",       "/*[name()='CustomMenuSet']",                  @menu_sets_content            )
+      @custom_menus             = parse_fms_obj( "/FMPReport/File/CustomMenuCatalog",          "/*[name()='CustomMenu']",                     @custom_menus_content         )
+      ### single file output                                                                                                                  
+      @accounts                 = parse_fms_obj( "/FMPReport/File/AccountCatalog",              "/*[name()='Account']",                       @accounts_content,            true )
+      @privileges               = parse_fms_obj( "/FMPReport/File/PrivilegesCatalog",           "/*[name()='PrivilegeSet']",                  @privileges_content,          true )
+      @extended_privileges      = parse_fms_obj( "/FMPReport/File/ExtendedPrivilegeCatalog",    "/*[name()='ExtendedPrivilege']",             @extended_priviledge_content, true )
+      @relationships            = parse_fms_obj( "/FMPReport/File/RelationshipGraph",           "/RelationshipList/*[name()='Relationship']", @relationships_content,       true )
+      @file_access              = parse_fms_obj( "/FMPReport/File/AuthFileCatalog",             '',                                           @file_access_content,         true )       
+      @external_sources         = parse_fms_obj( "/FMPReport/File/ExternalDataSourcesCatalog",  '',                                           @external_sources_content,    true )
+      @file_options             = parse_fms_obj( "/FMPReport/File/Options",                     '',                                           @file_options_content,        true )       
+      @themes                   = parse_fms_obj( "/FMPReport/File/ThemeCatalog",                "/*[name()='Theme']",                         @themes_content,              true )
 
-      ###
-      ### single folder with files
-      ###
-
-      @value_lists = parse_fms_obj("/FMPReport/File/ValueListCatalog", "/*[name()='ValueList']", @value_list_content)
-      write_obj_to_disk(@value_lists, @report_dirpath + "/ValueLists")
-
-      @tables = parse_fms_obj("/FMPReport/File/BaseTableCatalog", "/*[name()='BaseTable']", @table_content)
-      write_obj_to_disk(@tables, @report_dirpath + "/Tables")
-
-      @custom_functions = parse_fms_obj("/FMPReport/File/CustomFunctionCatalog", "/*[name()='CustomFunction']", @custom_function_content)
-      write_obj_to_disk(@custom_functions, @report_dirpath + "/CustomFunctions")
+      @named_objects = [
+        { :content =>  @scripts,             :disk_path => "/Scripts"                 }, 
+        { :content =>  @layouts,             :disk_path => "/Layouts"                 }, 
+        { :content =>  @value_lists,         :disk_path => "/ValueLists"              }, 
+        { :content =>  @tables,              :disk_path => "/Tables"                  }, 
+        { :content =>  @custom_functions,    :disk_path => "/CustomFunctions"         }, 
+        { :content =>  @menu_sets,           :disk_path => "/CustomMenuSets"          }, 
+        { :content =>  @custom_menus,        :disk_path => "/CustomMenus"             }, 
+        { :content =>  @accounts,            :disk_path => "/Accounts.txt"            }, 
+        { :content =>  @privileges,          :disk_path => "/PrivilegeSets.txt"       }, 
+        { :content =>  @extended_privileges, :disk_path => "/ExtendedPrivileges.txt"  }, 
+        { :content =>  @relationships,       :disk_path => "/Relationships.txt"       }, 
+        { :content =>  @file_access,         :disk_path => "/FileAccess.txt"          }, 
+        { :content =>  @external_sources,    :disk_path => "/ExternalDataSources.txt" }, 
+        { :content =>  @file_options,        :disk_path => "/Options.txt"             }, 
+        { :content =>  @themes,              :disk_path => "/Themes.txt"              }
+      ]
       
-      @menu_sets = parse_fms_obj("/FMPReport/File/CustomMenuSetCatalog", "/*[name()='CustomMenuSet']", @menu_sets_content)
-      write_obj_to_disk(@menu_sets, @report_dirpath + "/CustomMenuSets")
-      
-      @custom_menus = parse_fms_obj("/FMPReport/File/CustomMenuCatalog", "/*[name()='CustomMenu']", @custom_menus_content)
-      write_obj_to_disk(@custom_menus, @report_dirpath + "/CustomMenus")
-      
+    end
     
-      ###
-      ### single file output
-      ###
-
-      @accounts = parse_fms_obj("/FMPReport/File/AccountCatalog", "/*[name()='Account']", @accounts_content, true)
-      write_obj_to_disk(@accounts, @report_dirpath + "/Accounts.txt")
-      
-      @privileges = parse_fms_obj("/FMPReport/File/PrivilegesCatalog", "/*[name()='PrivilegeSet']", @privileges_content, true)
-      write_obj_to_disk(@privileges, @report_dirpath + "/PrivilegeSets.txt")
-      
-      @extended_privileges = parse_fms_obj("/FMPReport/File/ExtendedPrivilegeCatalog", "/*[name()='ExtendedPrivilege']", @extended_priviledge_content, true)
-      write_obj_to_disk(@extended_privileges, @report_dirpath + "/ExtendedPrivileges.txt")
-
-      @relationships = parse_fms_obj("/FMPReport/File/RelationshipGraph", "/RelationshipList/*[name()='Relationship']", @relationships_content, true)
-      write_obj_to_disk(@relationships, @report_dirpath + "/Relationships.txt")
-
-      @file_access = parse_fms_obj("/FMPReport/File/AuthFileCatalog", '' , @file_access_content, true)
-      write_obj_to_disk(@file_access, @report_dirpath + "/FileAccess.txt")
-      
-      @external_sources = parse_fms_obj("/FMPReport/File/ExternalDataSourcesCatalog", '', @external_sources_content, true)
-      write_obj_to_disk(@external_sources, @report_dirpath + "/ExternalDataSources.txt")
-      
-      @file_options = parse_fms_obj("/FMPReport/File/Options", '', @file_options_content, true)
-      write_obj_to_disk(@file_options, @report_dirpath + "/Options.txt")
-      
-      @themes = parse_fms_obj("/FMPReport/File/ThemeCatalog", "/*[name()='Theme']", @themes_content, true)
-      write_obj_to_disk(@themes, @report_dirpath + "/Themes.txt")
-      
-      
+    def write_all_objects()
+      @named_objects.each { |obj| write_obj_to_disk(obj[:content], @report_dirpath + obj[:disk_path])}
     end
 
     def parse
