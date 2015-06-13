@@ -14,11 +14,11 @@ module FMPVC
     attr_reader :content, :type, :text_dir, :text_filename, :report_dirpath, :named_objects
     
     def initialize(report_filename, ddr)
-      report_dirpath    = "#{ddr.base_dir}/#{report_filename}"  # location of the fmpfilename.xml file
+      report_dirpath    = "#{ddr.base_dir_ddr}/#{report_filename}"  # location of the fmpfilename.xml file
       raise(RuntimeError, "Error: can't find the report file, #{report_dirpath}") unless File.readable?(report_dirpath)
       
       @content             = IO.read(report_dirpath, mode: 'rb:UTF-16:UTF-8') # transcode is specifically for a spec content match
-      @text_dir            = "#{ddr.base_dir}/../fmp_text"
+      @text_dir            = "#{ddr.base_dir_ddr}/../fmp_text"
       @text_filename       = fs_sanitize(report_filename)
       @report_dirpath      = "#{@text_dir}/#{@text_filename}"
       

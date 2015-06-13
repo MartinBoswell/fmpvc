@@ -5,11 +5,11 @@ require 'rspec/mocks'
 
 describe 'FMPReport' do    
   
-  let (:ddr1)        { double("ddr", :base_dir => :'./spec/data/test_1/fmp_ddr/') }
+  let (:ddr1)        { double("ddr", :base_dir_ddr => :'./spec/data/test_1/fmp_ddr/') }
   let (:report_file) { 'Movies_fmp12.xml' }
   let (:report1)     { FMPReport.new(report_file, ddr1) }
 
-  let (:ddr2)        { double("ddr", :base_dir => :'./spec/data/test_2/fmp_ddr/') }
+  let (:ddr2)        { double("ddr", :base_dir_ddr => :'./spec/data/test_2/fmp_ddr/') }
   let (:report2)     { FMPReport.new(report_file, ddr2) }
 
   it "should create an fmreport from a file" do
@@ -34,11 +34,11 @@ describe 'FMPReport' do
     before(:context) do
       RSpec::Mocks.with_temporary_scope do
         report_file = 'Movies_fmp12.xml'
-        @ddr1 = double('ddr', :base_dir => :'./spec/data/test_1/fmp_ddr/') 
+        @ddr1 = double('ddr', :base_dir_ddr => :'./spec/data/test_1/fmp_ddr/') 
         @report1 = FMPReport.new(report_file, @ddr1) 
         @report1.write_all_objects
 
-        @ddr2 = double('ddr', :base_dir => :'./spec/data/test_2/fmp_ddr/') 
+        @ddr2 = double('ddr', :base_dir_ddr => :'./spec/data/test_2/fmp_ddr/') 
         @report2 = FMPReport.new(report_file, @ddr2) 
         @report2.write_all_objects
       end
@@ -100,9 +100,9 @@ describe 'FMPReport' do
 
       it "should clean previous data, i.e. clean the fmp_text folders" do
         # create a file in the fmp_text dir
-        @ddr3 = double('ddr', :base_dir => :'./spec/data/test_3/fmp_ddr/') 
-        temp_test_file = "#{@ddr3.base_dir}/../fmp_text/#{report_file}/TEST_FILE_FOR_CLEANING.txt"
-        FileUtils.mkdir_p(@ddr3.base_dir.to_s + "../fmp_text/Movies_fmp12.xml")
+        @ddr3 = double('ddr', :base_dir_ddr => :'./spec/data/test_3/fmp_ddr/') 
+        temp_test_file = "#{@ddr3.base_dir_ddr}/../fmp_text/#{report_file}/TEST_FILE_FOR_CLEANING.txt"
+        FileUtils.mkdir_p(@ddr3.base_dir_ddr.to_s + "../fmp_text/Movies_fmp12.xml")
         File.open(temp_test_file, 'w') { |f| f.puts 'For dir clean test.\n'}
         # create a ddr
         new_report = FMPReport.new(report_file, @ddr3)
