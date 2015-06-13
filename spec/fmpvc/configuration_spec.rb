@@ -20,7 +20,7 @@ describe FMPVC do
     expect(FMPVC.configuration.yaml).to be true
   end
   it "uses the DDR filename, 'Summary.xml' by default" do
-    expect(FMPVC.configuration.ddr_filename). to eq 'Summary'
+    expect(FMPVC.configuration.ddr_filename). to eq 'Summary.xml'
   end
   it "looks for DDR in 'fmp_ddr' directory by default" do
     expect(FMPVC.configuration.ddr_dirname). to eq 'fmp_ddr'

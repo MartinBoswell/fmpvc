@@ -18,7 +18,7 @@ module FMPVC
       raise(RuntimeError, "Error: can't find the report file, #{report_dirpath}") unless File.readable?(report_dirpath)
       
       @content             = IO.read(report_dirpath, mode: 'rb:UTF-16:UTF-8') # transcode is specifically for a spec content match
-      @text_dir            = "#{ddr.base_dir_ddr}/../fmp_text"
+      @text_dir            = "#{ddr.base_dir_ddr}/../#{FMPVC.configuration.text_dirname}"
       @text_filename       = fs_sanitize(report_filename)
       @report_dirpath      = "#{@text_dir}/#{@text_filename}"
       
@@ -155,7 +155,7 @@ module FMPVC
     end
     
     def write_obj_to_disk(objs, full_path)
-      post_notification(full_path.gsub(%r{.*fmp_text/},''), '  Writing')
+      post_notification(full_path.gsub(%r{.*#{FMPVC.configuration.text_dirname}/},''), '  Writing')
       if full_path =~ %r{\.txt}
         # single file objects
         File.open(full_path, 'w') do |f|

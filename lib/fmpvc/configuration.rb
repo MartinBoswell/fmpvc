@@ -8,8 +8,8 @@ module FMPVC
      @quiet               = false               # don't print progress to stdout
      @yaml                = true                # append full YAML to text files
      @ddr_filename        = 'Summary.xml'       # name of primary DDR file to open
-     @ddr_dirname         = 'fmp_ddr'           
-     @text_dirname        = 'fmp_text'          
+     @ddr_dirname         = 'fmp_ddr'           # directory containing DDR 
+     @text_dirname        = 'fmp_text'          # text file base directory
      @tree_filename       = 'tree.txt'          # set to nil to disable tree file generation
    end
     
