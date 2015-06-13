@@ -162,7 +162,7 @@ module FMPVC
     def write_custom_functions(object_xpath = '/FMPReport/File/CustomFunctionCatalog')
       FileUtils.mkdir_p(@custom_functions_dirpath) unless File.directory?(@custom_functions_dirpath)
       
-      custom_functions = @report.xpath("#{object_xpath}/*[name()='CustomFunction']")
+      custom_functions                        = @report.xpath("#{object_xpath}/*[name()='CustomFunction']")
       custom_functions.each do |a_custom_function|
         custom_function_name                  = a_custom_function['name']
         custom_function_id                    = a_custom_function['id']
@@ -170,7 +170,8 @@ module FMPVC
         sanitized_custom_function_name_id     = fs_id(sanitized_custom_function_name, custom_function_id)
         sanitized_custom_function_name_id_ext = sanitized_custom_function_name_id + '.txt'
         File.open(@custom_functions_dirpath + "/#{sanitized_custom_function_name_id_ext}", 'w') do |f|
-          a_custom_function.xpath("./Calculation").each {|t| f.print t.text}
+          a_custom_function.xpath("./Calculation").each {|t| f.puts t.text}
+          f.write(NEWLINE + element2yaml(a_custom_function))
         end
       end
       

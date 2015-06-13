@@ -125,19 +125,27 @@ describe 'FMPReport' do
     
     end
 
-    describe '#write_custom_functions' do
+    describe '#write_custom_functions', :focus => false do
+      
+      let (:custom_function_content)      { IO.read(find_path_with_base(@report2.report_dirpath + "/CustomFunctions/ramones_name")) }
   
       it "should create a custom function file on disk" do
         expect(Dir.glob(@report2.report_dirpath + "/CustomFunctions/*.txt").count).to be >=2
         # expect function_list to contain "ramones_name"
       end
       it "should create custom functions with good content" do
-        custom_function_content = IO.read(find_path_with_base(@report2.report_dirpath + "/CustomFunctions/ramones_name"))
+        # custom_function_content = IO.read(find_path_with_base(@report2.report_dirpath + "/CustomFunctions/ramones_name"))
         expect(custom_function_content).to match(%r{actor_first & " Ramone"})
       end
       it "should reproduce the original whitespace formatting" do
         custom_function_content = IO.read(find_path_with_base(@report2.report_dirpath + "/CustomFunctions/alphabet_up_to_letter"))
         expect(custom_function_content).to match(%r{Code\(letter\) = 65 ; "A"})
+      end
+      it "should have YAML" do
+        expect(custom_function_content).to match(%r{parameters:\ actor_first \s+ name:\ ramones_name}mx)
+      end
+      it "should have real YAML content" do 
+        expect(custom_function_content).to match(%r{--- \s+ CustomFunction: \s+ id:\ '1' \s+ functionArity:\ '1'}mx)
       end
     
     end
