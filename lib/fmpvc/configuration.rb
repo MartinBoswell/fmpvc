@@ -5,7 +5,7 @@ module FMPVC
    
    def initialize
      # set default config settings
-     @quiet               = true        # don't print progress to stdout
+     @quiet               = false        # don't print progress to stdout
      @yaml                = true
      @ddr_filename        = 'Summary'
      @ddr_dirname         = 'fmp_ddr'
