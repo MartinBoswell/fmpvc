@@ -10,12 +10,12 @@ module FMPVC
     
     attr_reader :content, :type, :fmp_files, :xml_files, :base_dir_ddr, :base_dir_text_path, :reports, :fmpa_version, :creation_time, :creation_date, :reports
     
-    def initialize(summary_directory, summary_filename = "Summary.xml")
+    def initialize(summary_directory, summary_filename = FMPVC.configuration.ddr_filename)
       
       @summary_filename      = summary_filename
       @base_dir_ddr          = File.expand_path(summary_directory)    ; raise(RuntimeError, "Error: can't find the DDR directory, #{@base_dir_ddr}")            unless File.readable?(@base_dir_ddr)
       summary_file_path      = "#{@base_dir_ddr}/#{summary_filename}" ; raise(RuntimeError, "Error: can't find the DDR Summary.xml file, #{summary_file_path}") unless File.readable?(summary_file_path)
-      @base_dir_text_path    = @base_dir_ddr.gsub(%r{fmp_ddr}, 'fmp_text')
+      @base_dir_text_path    = @base_dir_ddr.gsub(%r{#{FMPVC.configuration.ddr_dirname}}, FMPVC.configuration.text_dirname)
       @summary_text_path     = "#{@base_dir_text_path}/#{summary_filename.gsub(%r{\.xml}, '.txt')}"
 
       @content               = IO.read(summary_file_path)
@@ -56,7 +56,7 @@ module FMPVC
     end
     
     def post_notification(object, verb = 'Updating')
-      $stdout.puts [verb, object].join(" ")
+      $stdout.puts [verb, object].join(" ") unless FMPVC.configuration.quiet
     end
     
     def stringer(n, str = " ")
@@ -96,6 +96,7 @@ module FMPVC
     end
     
     def element2yaml(xml_element)
+      return '' unless FMPVC.configuration.yaml
   		element_xml							= xml_element.to_xml({:encoding => 'UTF-8'}) # REMEMBER: the encoding
   		element_hash						= Hash.from_xml(element_xml)
   		element_yaml						= element_hash.to_yaml
