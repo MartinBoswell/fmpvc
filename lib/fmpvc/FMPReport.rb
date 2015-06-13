@@ -38,8 +38,8 @@ module FMPVC
       # @data_sources_filepath        = @report_dirpath + "/ExternalDataSources.txt"
       # @file_options_filepath        = @report_dirpath + "/Options.txt"
 
-      @menu_sets_dirpath            = @report_dirpath + "/CustomMenuSets"
-      @menus_dirpath                = @report_dirpath + "/CustomMenus"
+      # @menu_sets_dirpath            = @report_dirpath + "/CustomMenuSets"
+      # @menus_dirpath                = @report_dirpath + "/CustomMenus"
       @themes_filepath              = @report_dirpath + "/Themes.txt"
       
       @layouts_dirpath              = @report_dirpath + "/Layouts"
@@ -54,6 +54,9 @@ module FMPVC
       
       @scripts = parse_fms_obj("/FMPReport/File/ScriptCatalog", "/*[name()='Group' or name()='Script']", @script_content)
       write_obj_to_disk(@scripts, @report_dirpath + "/Scripts")
+      
+      self.write_layouts
+      
 
       ###
       ### single folder with files
@@ -70,6 +73,20 @@ module FMPVC
       @custom_functions = parse_fms_obj("/FMPReport/File/CustomFunctionCatalog", "/*[name()='CustomFunction']", @custom_function_content)
       write_obj_to_disk(@custom_functions, @report_dirpath + "/CustomFunctions")
       
+      # self.write_menu_sets
+      @menu_sets = parse_fms_obj("/FMPReport/File/CustomMenuSetCatalog", "/*[name()='CustomMenuSet']", @menu_sets_content)
+      write_obj_to_disk(@menu_sets, @report_dirpath + "/CustomMenuSets")
+      
+      # self.write_menus
+      @custom_menus = parse_fms_obj("/FMPReport/File/CustomMenuCatalog", "/*[name()='CustomMenu']", @custom_menus_content)
+      write_obj_to_disk(@custom_menus, @report_dirpath + "/CustomMenus")
+      
+      self.write_themes
+      
+      # @ = parse_fms_obj(, , , true)
+      # write_obj_to_disk(, @report_dirpath + )
+      
+    
       ###
       ### single file output
       ###
@@ -105,18 +122,7 @@ module FMPVC
       @file_options = parse_fms_obj("/FMPReport/File/Options", '', @file_options_content, true)
       write_obj_to_disk(@file_options, @report_dirpath + "/Options.txt")
       
-      # @ = parse_fms_obj(, , , true)
-      # write_obj_to_disk(, @report_dirpath + )
-      
-      
-      
-
-      self.write_menu_sets
-      self.write_menus
-      self.write_themes
-
-      self.write_layouts
-      
+            
     end
 
     def parse
@@ -433,12 +439,43 @@ module FMPVC
         file_options.xpath('./WindowTriggers/*').each do |t|
           content += format(trigger_format, t.name, t.xpath('./Script').first['name'])
         end
-      
         
         content
       end
       
+      @menu_sets_content = Proc.new do |a_menu_set|
+        content = ''
+        menu_set_format                               = "%6d  %-35s\n"
+        menu_set_header_format                        = menu_set_format.gsub(%r{d}, 's')
+        content += format(menu_set_header_format, "id", "Menu")
+        content += format(menu_set_header_format, "--", "----")
+        a_menu_set.xpath("./CustomMenuList/*[name()='CustomMenu']").each do |a_menu|
+          content += format(menu_set_format, a_menu['id'], a_menu['name'])
+        end
+        
+        content
+      end
       
+      @custom_menus_content  = Proc.new do |a_menu|
+        content = ''
+        menu_name         = a_menu['name']
+        menu_id           = a_menu['id']
+        menu_base         = a_menu.xpath('./BaseMenu').first['name']
+        menu_comment      = a_menu.xpath('./Comment').text
+        menu_format       = "%17s  %-35s\n"
+
+        content += format(menu_format, "Menu name:", menu_name)
+        content += format(menu_format, "id:", menu_id)
+        content += format(menu_format, "Base menu:", menu_base)
+        content += format(menu_format, "Comment:", menu_comment)
+        content += NEWLINE
+        menu_items = a_menu.xpath("./MenuItemList/*[name()='MenuItem']")
+        menu_items.each do |an_item|
+          an_item.xpath('./Command').each { |c| content += "  #{c['name']}\n"}
+        end
+        
+        content
+      end
       
     end
     ##########################################################################################################
@@ -771,30 +808,30 @@ module FMPVC
     #
     # end
 
-    def write_menu_sets
-      FileUtils.mkdir_p(@menu_sets_dirpath) unless File.directory?(@menu_sets_dirpath)
-      
-      menu_sets_path                                  = '/FMPReport/File/CustomMenuSetCatalog'
-      menu_sets                                       = @report.xpath("#{menu_sets_path}/*[name()='CustomMenuSet']")
-      menu_sets.each do |a_menu_set|
-        menu_set_name                                 = a_menu_set['name']
-        menu_set_id                                   = a_menu_set['id']
-        sanitized_menu_set_name                       = fs_sanitize(menu_set_name)
-        sanitized_menu_set_name_id                    = fs_id(sanitized_menu_set_name, menu_set_id)
-        sanitized_menu_set_name_id_ext                = sanitized_menu_set_name_id + '.txt'
-        menu_set_format                               = "%6d  %-35s"
-        menu_set_header_format                        = menu_set_format.gsub(%r{d}, 's')
-        File.open(@menu_sets_dirpath + "/#{sanitized_menu_set_name_id_ext}", 'w') do |f|
-          f.puts format(menu_set_header_format, "id", "Menu")
-          f.puts format(menu_set_header_format, "--", "----")
-          a_menu_set.xpath("./CustomMenuList/*[name()='CustomMenu']").each do |a_menu|
-            f.puts format(menu_set_format, a_menu['id'], a_menu['name'])
-          end
-          f.write(NEWLINE + element2yaml(a_menu_set))
-        end
-      end
-      
-    end      
+    # def write_menu_sets
+    #   FileUtils.mkdir_p(@menu_sets_dirpath) unless File.directory?(@menu_sets_dirpath)
+    #
+    #   menu_sets_path                                  = '/FMPReport/File/CustomMenuSetCatalog'
+    #   menu_sets                                       = @report.xpath("#{menu_sets_path}/*[name()='CustomMenuSet']")
+    #   menu_sets.each do |a_menu_set|
+    #     menu_set_name                                 = a_menu_set['name']
+    #     menu_set_id                                   = a_menu_set['id']
+    #     sanitized_menu_set_name                       = fs_sanitize(menu_set_name)
+    #     sanitized_menu_set_name_id                    = fs_id(sanitized_menu_set_name, menu_set_id)
+    #     sanitized_menu_set_name_id_ext                = sanitized_menu_set_name_id + '.txt'
+    #     menu_set_format                               = "%6d  %-35s"
+    #     menu_set_header_format                        = menu_set_format.gsub(%r{d}, 's')
+    #     File.open(@menu_sets_dirpath + "/#{sanitized_menu_set_name_id_ext}", 'w') do |f|
+    #       f.puts format(menu_set_header_format, "id", "Menu")
+    #       f.puts format(menu_set_header_format, "--", "----")
+    #       a_menu_set.xpath("./CustomMenuList/*[name()='CustomMenu']").each do |a_menu|
+    #         f.puts format(menu_set_format, a_menu['id'], a_menu['name'])
+    #       end
+    #       f.write(NEWLINE + element2yaml(a_menu_set))
+    #     end
+    #   end
+    #
+    # end
           
     def write_menus
       FileUtils.mkdir_p(@menus_dirpath) unless File.directory?(@menus_dirpath)
