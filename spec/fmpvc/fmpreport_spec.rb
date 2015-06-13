@@ -345,7 +345,7 @@ describe 'FMPReport' do
     
     end
   
-    describe '#write_layouts', :focus => false do
+    describe '#write_layouts', :focus => true do
     
       let (:layout_folder)                    { find_path_with_base(@report2.report_dirpath + "/Layouts") }
       let (:layout_file)                      { find_path_with_base(layout_folder + '/Actors') }
@@ -375,7 +375,7 @@ describe 'FMPReport' do
     
     end
   
-    describe '#write_themes', :focus => true do
+    describe '#write_themes', :focus => false do
           
       let (:themes_file)               { find_path_with_base(@report2.report_dirpath + "/Themes") }
       let (:themes_file_content)       { IO.read(themes_file) }
