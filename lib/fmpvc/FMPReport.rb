@@ -8,6 +8,7 @@ module FMPVC
 	require 'yaml'
 
   NEWLINE = "\n"
+  YAML_START = "---\n"
   
   class FMPReport
     
@@ -18,7 +19,7 @@ module FMPVC
       raise(RuntimeError, "Error: can't find the report file, #{report_dirpath}") unless File.readable?(report_dirpath)
       
       @content                      = IO.read(report_dirpath, mode: 'rb:UTF-16:UTF-8') # transcode is specifically for a spec content match
-      @text_dir                     = "#{ddr.base_dir}../fmp_text"
+      @text_dir                     = "#{ddr.base_dir}/../fmp_text"
       @text_filename                = fs_sanitize(report_filename)
       @report_dirpath               = "#{@text_dir}/#{@text_filename}"
       @tables_dirpath               = @report_dirpath + "/Tables"
@@ -28,6 +29,7 @@ module FMPVC
       @accounts_filepath            = @report_dirpath + "/Accounts.txt"
       @privileges_filepath          = @report_dirpath + "/PrivilegeSets.txt"
       @ext_privileges_filepath      = @report_dirpath + "/ExtendedPrivileges.txt"
+      @relationships_filepath       = @report_dirpath + "/Relationships.txt"
       
       self.parse
       self.clean_dir
@@ -39,6 +41,7 @@ module FMPVC
       self.write_accounts
       self.write_privilege_sets
       self.write_extended_privileges
+      self.write_relationships
       
     end
 
@@ -186,7 +189,7 @@ module FMPVC
       account_path = '/FMPReport/File/AccountCatalog'
       accounts = @report.xpath("#{account_path}/*[name()='Account']")
       File.open(@accounts_filepath, 'w') do |f|
-        yaml_output = "---\n"
+        yaml_output = YAML_START
         accounts_format        = "%6d  %-25s  %-10s  %-12s  %-20s  %-12s  %-12s  %-50s"
         accounts_header_format = accounts_format.gsub(%r{d}, 's')
         f.puts format(accounts_header_format, "id", "Name", "Status", "Management", "Privilege Set", "Empty Pass?", "Change Pass?", "Description")
@@ -221,7 +224,7 @@ module FMPVC
       privilege_set_path = '/FMPReport/File/PrivilegesCatalog'
       privileges = @report.xpath("#{privilege_set_path}/*[name()='PrivilegeSet']")
       File.open(@privileges_filepath, 'w') do |f|
-        yaml_output = "---\n"
+        yaml_output = YAML_START
         privileges_format        = "%6d  %-25s  %-8s  %-10s  %-15s  %-12s  %-12s  %-12s  %-8s  %-18s %-11s  %-10s   %-12s  %-10s   %-16s  %-10s  %-70s"
         privileges_header_format = privileges_format.gsub(%r{d}, 's')
         f.puts format(privileges_header_format, "id", "Name", "Print?", "Export?", "Manage Ext'd?", "Override?", "Disconnect?", "Password?", "Menus", "Records", "Layouts", "(Creation)", "ValueLists", "(Creation)", "Scripts", "(Creation)", "Description")
@@ -276,7 +279,7 @@ module FMPVC
       ext_privileges_path = '/FMPReport/File/ExtendedPrivilegeCatalog'
       ext_privileges = @report.xpath("#{ext_privileges_path}/*[name()='ExtendedPrivilege']")
       File.open(@ext_privileges_filepath, 'w') do |f|
-        yaml_output = "---\n"
+        yaml_output = YAML_START
         ext_privilege_format        = "%6d  %-20s  %-85s  %-150s"
         ext_privilege_header_format = ext_privilege_format.gsub(%r{d}, 's')
         f.puts format(ext_privilege_header_format, "id", "Name", "Description", "Privilege Sets")
@@ -299,6 +302,63 @@ module FMPVC
         f.write(NEWLINE + yaml_output)
       end
     end
+    
+    
+    
+    def write_relationships
+      relationships_path    = 'FMPReport/File/RelationshipGraph'
+      tables                = @report.xpath("#{relationships_path}/TableList/*[name()='Table']")
+      relationships         = @report.xpath("#{relationships_path}/RelationshipList/*[name()='Relationship']")
+      File.open(@relationships_filepath, 'w') do |f|
+        yaml_output = YAML_START
+        table_format = "    %-25s  %-25s"
+        f.puts "Tables\n"
+        f.puts
+        f.puts format(table_format, "Base Table (id)", "Table Occurance (id)")
+        f.puts format(table_format, "---------------", "--------------------")
+        f.puts
+        tables.each do |a_table|
+          table_id                                            = a_table['id']
+          table_name                                          = a_table['name']
+          basetable_id                                        = a_table['baseTableId']
+          basetable_name                                      = a_table['baseTable']
+          f.puts format(table_format, "#{basetable_name} (#{basetable_id})", "#{table_name} (#{table_id})")
+
+          yaml_output += element2yaml(a_table).gsub(%r{\A --- \n}mx, '')
+        end
+        f.puts
+        relationship_format = "        %-35s  %-15s  %-35s"
+        f.puts "Relationships\n"
+        relationships.each do |a_relationship|
+          f.puts
+          f.puts format("    Relationship: %-4d", a_relationship['id'])
+          predicates = a_relationship.xpath('./JoinPredicateList/*[name()="JoinPredicate"]')
+          predicates.each do |a_predicate|
+            predicate_type                                    = a_predicate['type']
+
+            left_field                                        = a_predicate.xpath('./LeftField/*[name()="Field"]').first
+            left_table                                        = left_field['table']
+            left_field_name                                   = left_field['name']
+
+            right_field                                       = a_predicate.xpath('./RightField/*[name()="Field"]').first
+            right_table                                       = right_field['table']
+            right_field_name                                  = right_field['name']
+            f.puts format(relationship_format, "#{left_table}::#{left_field_name}", "#{predicate_type}", "#{right_table}::#{right_field_name}")
+          end
+          
+          yaml_output += element2yaml(a_relationship).gsub(%r{\A --- \n}mx, '')
+        end
+        f.write(NEWLINE + yaml_output)
+      end
+
+    end
+
+
+
+
+
+
+
 
   end
 
