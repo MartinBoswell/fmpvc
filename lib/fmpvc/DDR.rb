@@ -10,7 +10,7 @@ module FMPVC
     
     attr_reader :content, :type, :fmp_files, :xml_files, :base_dir_ddr, :base_dir_text_path, :reports, :fmpa_version, :creation_time, :creation_date, :reports
     
-    def initialize(summary_directory, summary_filename = "Summary.xml")
+    def initialize(summary_directory, summary_filename = FMPVC.configuration.ddr_filename)
       
       @summary_filename      = summary_filename
       @base_dir_ddr          = File.expand_path(summary_directory)    ; raise(RuntimeError, "Error: can't find the DDR directory, #{@base_dir_ddr}")            unless File.readable?(@base_dir_ddr)

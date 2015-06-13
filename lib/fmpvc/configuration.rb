@@ -5,12 +5,12 @@ module FMPVC
    
    def initialize
      # set default config settings
-     @quiet               = false        # don't print progress to stdout
-     @yaml                = true         # append full YAML to text files
-     @ddr_filename        = 'Summary'
-     @ddr_dirname         = 'fmp_ddr'
-     @text_dirname        = 'fmp_text'
-     @tree_filename       = 'tree.txt'   # set to nil to disable tree file generation
+     @quiet               = false               # don't print progress to stdout
+     @yaml                = true                # append full YAML to text files
+     @ddr_filename        = 'Summary.xml'       # name of primary DDR file to open
+     @ddr_dirname         = 'fmp_ddr'           
+     @text_dirname        = 'fmp_text'          
+     @tree_filename       = 'tree.txt'          # set to nil to disable tree file generation
    end
     
   end
