@@ -32,6 +32,9 @@ module FMPVC
       @relationships_filepath       = @report_dirpath + "/Relationships.txt"
       @menu_sets_dirpath            = @report_dirpath + "/CustomMenuSets"
       @menus_dirpath                = @report_dirpath + "/CustomMenus"
+      @file_access_filepath         = @report_dirpath + "/FileAccess.txt"
+      @data_sources_filepath        = @report_dirpath + "/ExternalDataSources.txt"
+      @file_options_filepath        = @report_dirpath + "/Options.txt"
       
       self.parse
       self.clean_dir
@@ -46,6 +49,9 @@ module FMPVC
       self.write_relationships
       self.write_menu_sets
       self.write_menus
+      self.write_file_access
+      self.write_external_data_sources
+      self.write_file_options
       
     end
 
@@ -308,7 +314,7 @@ module FMPVC
     end
     
     def write_relationships
-      relationships_path    = 'FMPReport/File/RelationshipGraph'
+      relationships_path    = '/FMPReport/File/RelationshipGraph'
       tables                = @report.xpath("#{relationships_path}/TableList/*[name()='Table']")
       relationships         = @report.xpath("#{relationships_path}/RelationshipList/*[name()='Relationship']")
       File.open(@relationships_filepath, 'w') do |f|
@@ -391,8 +397,6 @@ module FMPVC
         sanitized_menu_name                       = fs_sanitize(menu_name)
         sanitized_menu_name_id                    = fs_id(sanitized_menu_name, menu_id)
         sanitized_menu_name_id_ext                = sanitized_menu_name_id + '.txt'
-        # menu_format                               = "%6d  %-35s"
-        # menu_header_format                        = menu_format.gsub(%r{d}, 's')
         File.open(@menus_dirpath + "/#{sanitized_menu_name_id_ext}", 'w') do |f|
           menu_comment = a_menu.xpath('./Comment').text
           menu_base = a_menu.xpath('./BaseMenu').first['name']
@@ -403,24 +407,110 @@ module FMPVC
           menu_items = a_menu.xpath("./MenuItemList/*[name()='MenuItem']")
           menu_items.each do |an_item|
             an_item.xpath('./Command').each { |c| f.puts "#{c['name']}"}
-            # f.puts .first['name'] if
           end
           f.write(NEWLINE + element2yaml(a_menu))
         end
       end
     end
       
+    def write_file_access
+      file_access_path                            = '/FMPReport/File/AuthFileCatalog'
+      file_access                                 = @report.xpath("#{file_access_path}")
+      inbound_access                              = file_access.xpath("./Inbound/*[name()='InboundAuthorization']")
+      outbound_access                             = file_access.xpath("./Outbound/*[name()='OutboundAuthorization']")
+      access_format                               = "          %6d  %-25s  %-25s  %-25s"
+      access_format_header                        = access_format.gsub(%r{d}, 's')
+      File.open(@file_access_filepath, 'w') do |f|
+        auth_requirement = file_access.first['requireAuthorization']
+        f.puts "Authorization required: #{auth_requirement}"
+        if auth_requirement == "True"
+          f.puts
+          f.puts format(access_format_header, "id", "Timestamp", "Account", "Filenames")
+          f.puts format(access_format_header, "--", "---------", "-------", "---------")
+          f.puts format("%12s", "Inbound:")
+          inbound_access.each do |i|
+            f.puts format(access_format, i['id'], i['date'], i['user'], i['filenames'])
+          end
+          f.puts format("%12s", "Outbound:")
+          outbound_access.each do |o|
+            f.puts format(access_format, o['id'], o['date'], o['user'], o['filenames'])
+          end
+        end
+        f.puts
+        f.write(NEWLINE + element2yaml(file_access))
+      end
+      
+    end
+    
+    def write_external_data_sources
+      data_sources_path                         = '/FMPReport/File/ExternalDataSourcesCatalog'
+      data_sources                              = @report.xpath(data_sources_path)
+      file_references                           = data_sources.xpath("./*[name()='FileReference']")
+      odbc_sources                              = data_sources.xpath("./*[name()='OdbcDataSource']")
+      file_references_format                    = "   %6d  %-25s  %-25s"
+      file_references_header_format             = file_references_format.gsub(%r{d},'s')
+      odbc_source_format                        = "   %6d  %-25s  %-25s  %-25s"
+      odbc_source_header_format                 = odbc_source_format.gsub(%r{d},'s')
+      File.open(@data_sources_filepath, 'w') do |f|
+        f.puts format(file_references_header_format, "id", "File Reference", "Path List")
+        f.puts format(file_references_header_format, "--", "--------------", "---------")
+        file_references.each do |r|
+          f.puts format(file_references_format, r['id'], r['name'], r['pathList'])
+        end
+        f.puts
+        f.puts format(odbc_source_header_format, "id", "ODBC Source", "DSN", "Link")
+        f.puts format(odbc_source_header_format, "--", "-----------", "---", "----")
+        odbc_sources.each do |s|
+          f.puts format(odbc_source_format, s['id'], s['name'], s['DSN'], s['link'])
+        end
+        f.write(NEWLINE + element2yaml(data_sources))
+      end
+      
+    end
+    
+    def write_file_options
+      file_options_path                          = '/FMPReport/File/Options'
+      file_options                               = @report.xpath(file_options_path)
+      file_options_format                        = "    %-27s  %-30s"
+      trigger_format                             = "        %-23s  %-30s"
+      
+      # optional <FMPReport><File><Options>, see DDR_grammar doc, p. 5
+      open_account_search                        = file_options.xpath('./OnOpen/Account')
+      open_account                               = (open_account_search.size > 0 ? open_account_search.first['name']: "")
+      open_layout_search                         = file_options.xpath('./OnOpen/Layout')
+      open_layout                                = ( open_layout_search.size > 0 ? open_layout_search.first['name'] : "" )
+      
+      encryption_type                            = file_options.xpath('./Encryption').first['type']
+      encryption_note                            = case encryption_type
+                                                   when "0"
+                                                     "no encryption"
+                                                   when "1"
+                                                     "AES256 encrypted"
+                                                   end
+      
+      File.open(@file_options_filepath, 'w') do |f|
+        f.puts "File Options"
+        f.puts "------------"
+        f.puts
+        f.puts format(file_options_format, "Encryption:", "#{encryption_type} (#{encryption_note})")
+        f.puts ""
+    		f.puts format(file_options_format, "Minimum Allowed Version:", file_options.xpath('./OnOpen/MinimumAllowedVersion').first['name'])
+    		f.puts format(file_options_format, "Account:", open_account)
+    		f.puts format(file_options_format, "Layout:", open_layout)
+        f.puts ""
+        f.puts format(file_options_format, "Default Custom Menu Set:", file_options.xpath('./DefaultCustomMenuSet/CustomMenuSet').first['name'])
+        f.puts ""
+        f.puts "    Triggers"
+        file_options.xpath('./WindowTriggers/*').each do |t|
+          f.puts format(trigger_format, t.name, t.xpath('./Script').first['name'])
+        end
+        f.write(NEWLINE + element2yaml(file_options))
+      end
       
       
       
-      
-      
-
-
-
-
-
-
+    end
+    
   end
 
 end

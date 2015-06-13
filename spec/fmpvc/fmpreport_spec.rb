@@ -240,6 +240,64 @@ describe 'FMPReport' do
     end
     
   end
+  
+  describe '#write_file_access', :focus => false do
+    
+    let (:file_access_file)               { find_path_with_base(report2.report_dirpath + "/FileAccess") }
+    let (:file_access_file_content)       { IO.read(file_access_file) }
+    
+    it "should should create a file access file" do
+      expect(File.exists?(file_access_file)).to be true
+    end
+    it "should display the YAML" do
+      expect(file_access_file_content).to match(%r{requireAuthorization:\ 'True' \s+ Inbound: \s+ InboundAuthorization: \s+ id:\ '2'}mx)
+    end
+    it "should list file access parameters" do 
+      expect(file_access_file_content).to match(%r{2 \s+ 2015-5-11\ 5:49:52\ PM \s+ Admin \s+ Movies\ Clone}mx)
+    end
+    
+  end
+  
+  describe '#write_external_data_sources', :focus => false do
+    
+    let (:data_source_file)               { find_path_with_base(report2.report_dirpath + "/ExternalDataSources") }
+    let (:data_source_file_content)       { IO.read(data_source_file) }
+    
+    it "should create an external data source file" do
+      expect(File.exists?(data_source_file)).to be true
+    end
+    it "should contain YAML" do
+      expect(data_source_file_content).to match(%r{pathList:\ file:../../FMServer_Sample \s+ name:\ Local\ Server_Sample \s+ OdbcDataSource: \s+ link:\ Movies_fmp12.xml}mx)
+    end
+
+    it "should show data source list" do 
+      expect(data_source_file_content).to match(%r{3 \s+ ODBC\ Testing \s+ ODBC_Testing \s+ Movies_fmp12.xml}mx)
+    end
+  
+  end
+  
+  describe '#write_file_options', :focus => true do
+    
+    let (:file_options_file)               { find_path_with_base(report2.report_dirpath + "/Options") }
+    let (:file_options_file_content)       { IO.read(file_options_file) }
+    
+    it "should create an external data source file" do
+      expect(File.exists?(file_options_file)).to be true
+    end
+    it "should contain YAML" do
+      expect(file_options_file_content).to match(%r{OnOpen: \s+ MinimumAllowedVersion: \s+ name:\ '12.0' \s+ id:\ '1208'}mx)
+    end
+
+    it "should show data source list" do 
+      expect(file_options_file_content).to match(%r{Minimum\ Allowed\ Version: \s+ 12.0 \s+ Account: \s+ Admin}mx)
+    end
+    
+    it "should have a note explaining the encryption option" do
+      expect(file_options_file_content).to match(%r{no\ encryption}imx)
+    end
+    
+  end
+  
 
   describe '#element2yaml'
     # Internal method;  no interface => no unit tests
