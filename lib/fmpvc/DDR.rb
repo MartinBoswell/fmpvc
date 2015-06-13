@@ -8,15 +8,15 @@ module FMPVC
 
   class DDR
     
-    attr_reader :content, :type, :fmp_files, :xml_files, :base_dir_ddr, :base_dir_text, :reports, :fmpa_version, :creation_time, :creation_date, :reports
+    attr_reader :content, :type, :fmp_files, :xml_files, :base_dir_ddr, :base_dir_text_path, :reports, :fmpa_version, :creation_time, :creation_date, :reports
     
     def initialize(summary_directory, summary_filename = "Summary.xml")
       
       @summary_filename      = summary_filename
-      @base_dir_ddr          = File.expand_path(summary_directory)        ; raise(RuntimeError, "Error: can't find the DDR directory, #{@base_dir_ddr}")            unless File.readable?(@base_dir_ddr)
+      @base_dir_ddr          = File.expand_path(summary_directory)    ; raise(RuntimeError, "Error: can't find the DDR directory, #{@base_dir_ddr}")            unless File.readable?(@base_dir_ddr)
       summary_file_path      = "#{@base_dir_ddr}/#{summary_filename}" ; raise(RuntimeError, "Error: can't find the DDR Summary.xml file, #{summary_file_path}") unless File.readable?(summary_file_path)
-      @base_dir_text         = @base_dir_ddr.gsub(%r{fmp_ddr}, 'fmp_text')
-      @summary_file_text     = "#{@base_dir_text}/#{summary_filename.gsub(%r{\.xml}, '.txt')}"
+      @base_dir_text_path    = @base_dir_ddr.gsub(%r{fmp_ddr}, 'fmp_text')
+      @summary_text_path     = "#{@base_dir_text_path}/#{summary_filename.gsub(%r{\.xml}, '.txt')}"
 
       @content               = IO.read(summary_file_path)
       @reports               = Array.new
@@ -55,6 +55,7 @@ module FMPVC
     end
     
     def write_summary
+      FileUtils.mkdir(@base_dir_text_path) unless File.directory?(@base_dir_text_path)
       summary_format      = "%25s  %-512s\n"
       # report_params       = ["BaseTables", "Tables", "Relationships", "Privileges", "ExtendedPrivileges", "FileAccess", "Layouts", "Scripts", "ValueLists", "CustomFunctions", "FileReferences", "CustomMenuSets", "CustomMenus"]
       report_params       = @reports.first[:attrs].keys # better to get the keys dynamically than a fixed list
@@ -62,7 +63,7 @@ module FMPVC
       report_format       = "%25s " + params_label
       header              = stringer(25 - "Report".length) + "Report" + "   " + report_params.join('  ')
       separator           = header.gsub(%r{\w}, '-')
-      File.open(@summary_file_text, 'w') do |f|
+      File.open(@summary_text_path, 'w') do |f|
         f.write format(summary_format, "Summary file:",           @summary_filename)
         f.write format(summary_format, "Summary path:",           @base_dir_ddr)
         f.write format(summary_format, "FileMaker Pro version:",  @fmpa_version)
@@ -72,7 +73,7 @@ module FMPVC
         f.puts header
         f.puts separator
         @reports.each do |r|
-          f.puts format(report_format, r[:name], *report_params.map { |p| r[:attrs][p] }) 
+          f.puts format(report_format, r[:name] + ' ', *report_params.map { |p| r[:attrs][p] }) 
         end
         f.puts
         f.puts @summary_yaml
@@ -81,7 +82,7 @@ module FMPVC
     
     def write_reports
       self.process_reports if @reports.first[:report].nil?
-      @reports.each { |r| r.write_all_objects }
+      @reports.each { |r| r[:report].write_all_objects }
     end
     
     def element2yaml(xml_element)

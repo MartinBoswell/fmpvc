@@ -47,22 +47,22 @@ describe 'DDR' do
   # test file content
   it "should write files to disk on command" do
     ddr1.write_summary
-    expect(File.readable?("#{ddr1.base_dir_text}/Summary.txt")).to be true
+    expect(File.readable?("#{ddr1.base_dir_text_path}/Summary.txt")).to be true
   end
   it "should write a Summary file with generation details" do 
     # ddr1.write_summary (only needed once, above)
-    expect(IO.read("#{ddr1.base_dir_text}/Summary.txt")).to match(%r{FileMaker\ Pro\ version: \s+ 14\.0\.1 \s+ Creation\ Date: \s+ 2015-4-23}mx)
+    expect(IO.read("#{ddr1.base_dir_text_path}/Summary.txt")).to match(%r{FileMaker\ Pro\ version: \s+ 14\.0\.1 \s+ Creation\ Date: \s+ 2015-4-23}mx)
   end  
   it "should write a Summary file with a list of the reports" do 
     # ddr1.write_summary (only needed once, above)
-    expect(IO.read("#{ddr1.base_dir_text}/Summary.txt")).to match(%r{Report .* -+ .* Movies\.fmp12}mx)
+    expect(IO.read("#{ddr1.base_dir_text_path}/Summary.txt")).to match(%r{Report .* -+ .* Movies\.fmp12}mx)
   end
   it "should write a Summary file with details about the reports" do 
     # ddr1.write_summary (only needed once, above)
-    expect(IO.read("#{ddr1.base_dir_text}/Summary.txt")).to match(%r{Movies.fmp12 \s+ 3 \s+ 3 \s+ 2 \s+ 2 \s+ 3}mx)
+    expect(IO.read("#{ddr1.base_dir_text_path}/Summary.txt")).to match(%r{Movies.fmp12 \s+ 3 \s+ 3 \s+ 2 \s+ 2 \s+ 3}mx)
   end
   it "should generate Summary yaml" do
     # ddr1.write_summary (only needed once, above)
-    expect(IO.read("#{ddr1.base_dir_text}/Summary.txt")).to match(%r{File: \s+ link:\ "\.//Movies_fmp12\.xml" \s+ name:\ Movies.fmp12}mx)
+    expect(IO.read("#{ddr1.base_dir_text_path}/Summary.txt")).to match(%r{File: \s+ link:\ "\.//Movies_fmp12\.xml" \s+ name:\ Movies.fmp12}mx)
   end
 end
