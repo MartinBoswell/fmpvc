@@ -518,7 +518,7 @@ module FMPVC
       
       @themes_content = Proc.new do |themes|
         content = ''
-        theme_format = "  %6s  %-20s  %-20s  %6s  %-20s  %-20s\n"
+        theme_format = "  %6s  %-20s  %-20s  %-10s  %-10s  %-20s\n"
         content += format(theme_format, "id", "Name", "Group", "Version", "Locale", "Internal Name")
         content += format(theme_format, "--", "----", "-----", "-------", "------", "-------------")
         themes.each do |a_theme|
