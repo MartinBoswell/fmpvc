@@ -3,7 +3,16 @@ include FMPVC
 
 require 'rspec/mocks'
 
-describe 'FMPReport' do    
+describe 'FMPReport' do
+  
+  # Suppress stdout for progress indicators
+  before(:all) do
+    @stdout = $stdout
+    $stdout = File.open(File::NULL, 'w+')
+  end
+  after(:all) do
+    $stdout = @stdout
+  end
   
   let (:ddr1)        { double("ddr", :base_dir_ddr => :'./spec/data/test_1/fmp_ddr/') }
   let (:report_file) { 'Movies_fmp12.xml' }
@@ -97,18 +106,6 @@ describe 'FMPReport' do
         expect(sanitzed_files[1]).to match(%r{Movie.Film Display})
       end
         
-
-      # it "should clean previous data, i.e. clean the fmp_text folders" do
-      #   # create a file in the fmp_text dir
-      #   @ddr3 = double('ddr', :base_dir_ddr => :'./spec/data/test_3/fmp_ddr/')
-      #   temp_test_file = "#{@ddr3.base_dir_ddr}/../fmp_text/#{report_file}/TEST_FILE_FOR_CLEANING.txt"
-      #   FileUtils.mkdir_p(@ddr3.base_dir_ddr.to_s + "../fmp_text/Movies_fmp12.xml")
-      #   File.open(temp_test_file, 'w') { |f| f.puts 'For dir clean test.\n'}
-      #   # create a ddr
-      #   new_report = FMPReport.new(report_file, @ddr3)
-      #   # file should have been cleaned
-      #   expect(File.exists?(temp_test_file)).to be false
-      # end
     end
 
     describe '#write_value_lists', :focus => false do
@@ -394,9 +391,20 @@ describe 'FMPReport' do
         expect(themes_file_content).to match(%r{--- \s+ ThemeCatalog: \s+ Theme: \s+ group:\ Aspire}mx)
       end
       it "should have good yaml for two or more themes"
-      
+
     end
     
+    describe '#post_notification', :focus => true do
+      it "should update user on progress" do
+        expect { @report2.post_notification('an object', 'Updating') }.to output("Updating an object\n").to_stdout
+      end
+      it "should update user on progress when reports are parsed" do
+        expect { @report2.parse_fmp_obj( "/FMPReport/File/AccountCatalog", "/*[name()='Account']", Proc.new {"bogus\naccount\ncontent"}, true ) }.to output("Parsing AccountCatalog\n").to_stdout
+      end
+      it "should update user on progress when reports are written to disk" do
+        expect { @report2.write_obj_to_disk([], @report2.report_dirpath + "/Tables") }.to output("Writing Movies_fmp12.xml/Tables\n").to_stdout
+      end
+    end
     
   end
 
