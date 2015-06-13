@@ -33,8 +33,12 @@ describe 'DDR' do
     expect(ddr1.base_dir).to eq(File.expand_path("./spec/data/test_1/fmp_ddr"))
     # expect(ddr1.base_dir).to eq("/Users/boswell/Dropbox/Projects/2015/Q1_FMP_versioning/fmp_versioning/spec/data/test_1/fmp_ddr")
   end
-  it "should return list of the xml files"
-  it "should generate the FMPReports itself on request"
+  it "should return list of the xml files" do
+    expect(ddr1.xml_files.first).to match('Movies_fmp12.xml')
+  end
+  it "should generate the FMPReports itself on request" do
+    expect(ddr1.process_reportfiles.first.class).to be FMPVC::FMPReport
+  end
   
   
 end
