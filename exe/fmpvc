@@ -20,17 +20,18 @@ unless ( FMPVC.configuration.tree_filename.nil? || FMPVC.configuration.tree_file
     # don't let MakeMake leave extraneous logs
     @logfile = File::NULL    
   end 
+
   tree_command = find_executable 'tree'
   if tree_command
-     puts "Creating tree.txt."
+     puts "Creating tree.txt." unless FMPVC.configuration.quiet
      `#{tree_command} -F > #{FMPVC.configuration.tree_filename}`
   end
 end
 
 time_end = Time.new
-puts "Processing complete."  
-puts "Elapsed time: #{(time_end - time_start).round(0)} seconds."
-
-puts
-
+unless FMPVC.configuration.quiet
+  puts "Processing complete."  
+  puts "Elapsed time: #{(time_end - time_start).round(0)} seconds."
+  puts
+end
 

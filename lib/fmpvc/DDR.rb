@@ -55,7 +55,7 @@ module FMPVC
     end
     
     def post_notification(object, verb = 'Updating')
-      $stdout.puts [verb, object].join(" ")
+      $stdout.puts [verb, object].join(" ") unless FMPVC.configuration.quiet
     end
     
     def stringer(n, str = " ")
