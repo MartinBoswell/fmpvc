@@ -4,7 +4,7 @@ module FMPVC
   
   class DDR
     
-    attr_reader :content, :type, :fmp_files, :base_dir
+    attr_reader :content, :type, :fmp_files, :xml_files, :base_dir
     
     def initialize(summary_directory, summary_filename = "Summary.xml")
       @base_dir = File.expand_path(summary_directory)
@@ -33,17 +33,18 @@ module FMPVC
       
       # create list of files in this DDR
       fmp_reports = summary.xpath("//FMPReport/File")  # Nokogiri::XML::NodeSet
-      @fmp_files = Array.new # change to @fmp_files = fmp_reports.collect{ |each_node| each_node["name"]}
-      fmp_reports.each do |a_file|
-        @fmp_files.push(a_file["name"])
-      end
-      
-      # 
-      
+      @xml_files = fmp_reports.collect {|node| node['link']}
+      @fmp_files = fmp_reports.collect {|node| node['name']}      
       
     end
     
-    
+    def process_reportfiles
+      report_list = Array.new
+      @xml_files.each do |report_file|
+        report_list.push FMPReport.new(report_file, self)
+      end
+      report_list
+    end
     
   end
 
