@@ -22,6 +22,10 @@ module FMPVC
       @text_dir                     = "#{ddr.base_dir}/../fmp_text"
       @text_filename                = fs_sanitize(report_filename)
       @report_dirpath               = "#{@text_dir}/#{@text_filename}"
+      
+      self.define_content_procs
+      
+      
       @tables_dirpath               = @report_dirpath + "/Tables"
       @scripts_dirpath              = @report_dirpath + "/Scripts"
       @value_lists_dirpath          = @report_dirpath + "/ValueLists"
@@ -43,7 +47,7 @@ module FMPVC
       self.write_dir
       self.write_tables
       self.write_scripts
-      self.write_value_lists
+      self.parse_fms_obj("/FMPReport/File/ValueListCatalog/*[name()='ValueList']", @vl_content) # write_value_lists
       self.write_custom_functions
       self.write_accounts
       self.write_privilege_sets
@@ -102,6 +106,50 @@ module FMPVC
   		element_yaml						= element_hash.to_yaml
     end
     
+    def define_content_procs
+      
+      @vl_content = Proc.new do |a_value_list|
+        content = ''
+        source_type = a_value_list.xpath("./Source").first['value']
+        if source_type == "Custom"
+          a_value_list.xpath("./CustomValues/Text").each {|t| content += t.text}
+        end  
+        content
+      end
+      
+    end
+
+    def parse_fms_obj(object_xpath, obj_content)
+      objects = @report.xpath(object_xpath)
+      objects.each do |an_obj|
+        obj_name                    = an_obj['name']
+        obj_id                      = an_obj['id']
+        sanitized_obj_name          = fs_sanitize(obj_name)
+        sanitized_obj_name_id       = fs_id(sanitized_obj_name, obj_id)
+        sanitized_obj_name_id_ext   = sanitized_obj_name_id + '.txt'
+  
+        content = obj_content.call(an_obj)
+        yaml = element2yaml(an_obj)
+  
+        obj_text_content = {
+            :name        => sanitized_obj_name_id_ext                        \
+          , :type        => :file                                            \
+          , :xpath       => an_obj.path                                      \
+          , :content     => content                                          \
+          , :yaml        => yaml                                             \
+        }
+        write_vl_to_disk(obj_text_content)
+      end
+    end
+
+    def write_vl_to_disk(obj)
+      FileUtils.mkdir_p(@value_lists_dirpath) unless File.directory?(@value_lists_dirpath)
+      File.open("#{@value_lists_dirpath}/#{obj[:name]}", 'w') do |f|
+        f.write(obj[:content])
+        f.write(NEWLINE + obj[:yaml])
+      end
+    end
+    
     ###
     ### create files
     ###
@@ -138,26 +186,30 @@ module FMPVC
       end
     end
     
-    def write_value_lists(object_xpath = '/FMPReport/File/ValueListCatalog')
-      FileUtils.mkdir_p(@value_lists_dirpath) unless File.directory?(@value_lists_dirpath)
-      
-      value_lists = @report.xpath("#{object_xpath}/*[name()='ValueList']")
-      value_lists.each do |a_value_list|
-        value_list_name                    = a_value_list['name']
-        value_list_id                      = a_value_list['id']
-        sanitized_value_list_name          = fs_sanitize(value_list_name)
-        sanitized_value_list_name_id       = fs_id(sanitized_value_list_name, value_list_id)
-        sanitized_value_list_name_id_ext   = sanitized_value_list_name_id + '.txt'
-        File.open(@value_lists_dirpath + "/#{sanitized_value_list_name_id_ext}", 'w') do |f|
-          source_type = a_value_list.xpath("./Source").first['value']
-          if source_type == "Custom"
-            a_value_list.xpath("./CustomValues/Text").each {|t| f.puts t.text}
-          end
-          f.write(NEWLINE + element2yaml(a_value_list))
-        end
-      end
-      
-    end
+    # def write_value_lists(object_xpath = "/FMPReport/File/ValueListCatalog/*[name()='ValueList']", obj_content = vl_content)
+    #   parse_fms_obj(object_xpath, obj_content)
+    # end
+
+    # def write_value_lists(object_xpath = '/FMPReport/File/ValueListCatalog')
+    #   FileUtils.mkdir_p(@value_lists_dirpath) unless File.directory?(@value_lists_dirpath)
+    #
+    #   value_lists = @report.xpath("#{object_xpath}/*[name()='ValueList']")
+    #   value_lists.each do |a_value_list|
+    #     value_list_name                    = a_value_list['name']
+    #     value_list_id                      = a_value_list['id']
+    #     sanitized_value_list_name          = fs_sanitize(value_list_name)
+    #     sanitized_value_list_name_id       = fs_id(sanitized_value_list_name, value_list_id)
+    #     sanitized_value_list_name_id_ext   = sanitized_value_list_name_id + '.txt'
+    #     File.open(@value_lists_dirpath + "/#{sanitized_value_list_name_id_ext}", 'w') do |f|
+    #       source_type = a_value_list.xpath("./Source").first['value']
+    #       if source_type == "Custom"
+    #         a_value_list.xpath("./CustomValues/Text").each {|t| f.puts t.text}
+    #       end
+    #       f.write(NEWLINE + element2yaml(a_value_list))
+    #     end
+    #   end
+    #
+    # end
     
     def write_custom_functions(object_xpath = '/FMPReport/File/CustomFunctionCatalog')
       FileUtils.mkdir_p(@custom_functions_dirpath) unless File.directory?(@custom_functions_dirpath)

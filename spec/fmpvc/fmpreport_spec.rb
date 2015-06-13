@@ -30,6 +30,7 @@ describe 'FMPReport' do
   # for optimization of these specs 
   # only writing files once reduced time from 20+ sec to 3 sec (so far)
   describe "creating a temporary scope for the DDR doubles" do
+    
     before(:context) do
       RSpec::Mocks.with_temporary_scope do
         report_file = 'Movies_fmp12.xml'
@@ -50,7 +51,7 @@ describe 'FMPReport' do
       end  
     end
 
-    describe '#write_scripts', :focus => true do
+    describe '#write_scripts', :focus => false do
       it "should create a script file on disk" do
         expect(Dir.glob(@report2.report_dirpath + "/Scripts/Actors (id 6)/*.txt").count).to eq(2)
       end
