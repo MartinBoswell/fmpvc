@@ -365,7 +365,7 @@ module FMPVC
       
       @extended_priviledge_content = Proc.new do |ext_privileges|
         content = ''
-        ext_privilege_format              = "%6d  %-20s  %-85s  %-150s"
+        ext_privilege_format              = "%6d  %-20s  %-85s  %-150s\n"
         ext_privilege_header_format       = ext_privilege_format.gsub(%r{d}, 's')
         content += format(ext_privilege_header_format, "id", "Name", "Description", "Privilege Sets")
         content += format(ext_privilege_header_format, "--", "----", "-----------", "--------------")
@@ -381,7 +381,7 @@ module FMPVC
                     , ext_privilege_name \
                     , ext_privilege_comment \
                     , ext_privilege_sets \
-          ) + NEWLINE
+          ) 
         end
         content
       end
