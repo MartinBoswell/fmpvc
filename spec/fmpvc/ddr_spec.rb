@@ -40,5 +40,8 @@ describe 'DDR' do
     expect(ddr1.process_reportfiles.first.class).to be FMPVC::FMPReport
   end
   
+  it "should write a Summary file with generation details"
+  it "should write files to disk on command"
+  
   
 end
