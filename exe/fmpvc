@@ -4,6 +4,8 @@
 require 'fmpvc'
 include FMPVC
 
+FMPVC.configure {}
+
 time_start = Time.new
 
 ddr_dir = './fmp_ddr'
@@ -12,15 +14,17 @@ ddr.process_reports
 ddr.write_reports
 
 # create a tree file, if available
-require 'mkmf'
-module MakeMakefile::Logging
-  # don't let MakeMake leave extraneous logs
-  @logfile = File::NULL    
-end 
-tree_command = find_executable 'tree'
-if tree_command
-   puts "Creating tree.txt."
-   `#{tree_command} -F > tree.txt`
+unless ( FMPVC.configuration.tree_filename.nil? || FMPVC.configuration.tree_filename == '' )
+  require 'mkmf'
+  module MakeMakefile::Logging
+    # don't let MakeMake leave extraneous logs
+    @logfile = File::NULL    
+  end 
+  tree_command = find_executable 'tree'
+  if tree_command
+     puts "Creating tree.txt."
+     `#{tree_command} -F > #{FMPVC.configuration.tree_filename}`
+  end
 end
 
 time_end = Time.new

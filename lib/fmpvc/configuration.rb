@@ -10,7 +10,7 @@ module FMPVC
      @ddr_filename        = 'Summary'
      @ddr_dirname         = 'fmp_ddr'
      @text_dirname        = 'fmp_text'
-     @tree_filename       = 'tree.txt'
+     @tree_filename       = 'tree.txt'   # set to nil to disable tree file generation
    end
     
   end
