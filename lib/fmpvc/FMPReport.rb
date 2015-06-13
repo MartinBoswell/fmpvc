@@ -290,12 +290,12 @@ module FMPVC
     end
 
     def write_extended_privileges
-      ext_privileges_path = '/FMPReport/File/ExtendedPrivilegeCatalog'
-      ext_privileges = @report.xpath("#{ext_privileges_path}/*[name()='ExtendedPrivilege']")
+      ext_privileges_path                 = '/FMPReport/File/ExtendedPrivilegeCatalog'
+      ext_privilege_catalog               = @report.xpath(ext_privileges_path)
+      ext_privileges                      = @report.xpath("#{ext_privileges_path}/*[name()='ExtendedPrivilege']")
       File.open(@ext_privileges_filepath, 'w') do |f|
-        yaml_output = YAML_START
-        ext_privilege_format        = "%6d  %-20s  %-85s  %-150s"
-        ext_privilege_header_format = ext_privilege_format.gsub(%r{d}, 's')
+        ext_privilege_format              = "%6d  %-20s  %-85s  %-150s"
+        ext_privilege_header_format       = ext_privilege_format.gsub(%r{d}, 's')
         f.puts format(ext_privilege_header_format, "id", "Name", "Description", "Privilege Sets")
         f.puts format(ext_privilege_header_format, "--", "----", "-----------", "--------------")
         ext_privileges.each do |an_ext_privilege|
@@ -311,9 +311,8 @@ module FMPVC
                     , ext_privilege_comment \
                     , ext_privilege_sets \
           )
-          yaml_output += element2yaml(an_ext_privilege).gsub(%r{\A --- \n}mx, '')
         end
-        f.write(NEWLINE + yaml_output)
+        f.write(NEWLINE + element2yaml(ext_privilege_catalog))
       end
     end
     

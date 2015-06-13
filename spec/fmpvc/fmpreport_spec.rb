@@ -177,7 +177,7 @@ describe 'FMPReport' do
       end
     end
   
-    describe '#write_privilege_sets', :focus => true do
+    describe '#write_privilege_sets', :focus => false do
 
       let (:privileges_file_content)      { IO.read(find_path_with_base(@report2.report_dirpath + "/PrivilegeSets")) }
     
@@ -193,7 +193,7 @@ describe 'FMPReport' do
       end
     end
   
-    describe '#write_extended_privileges' do
+    describe '#write_extended_privileges', :focus => true do
 
       let (:ext_privileges_file_content)      { IO.read(find_path_with_base(@report2.report_dirpath + "/ExtendedPrivileges")) }
     
@@ -203,6 +203,9 @@ describe 'FMPReport' do
       it "should have good content in privileges file" do
         expect(ext_privileges_file_content).to match(%r{\d \s+ fmxml \s+ Access\ via\ XML\ Web\ Publishing\ -\ FMS\ only}mx) # table
         expect(ext_privileges_file_content).to match(%r{comment: \s+ Access\ via\ XML\ Web\ Publishing\ -\ FMS\ only \s+ name: \s+ fmxml}mx) # yaml
+      end
+      it "should have real YAML" do
+        expect(ext_privileges_file_content).to match(%r{ExtendedPrivilegeCatalog: \s+ ExtendedPrivilege: \s+ -\ id:\ '1' \s+ comment:\ Access\ via}mx)
       end
     end
   
