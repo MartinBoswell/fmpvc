@@ -136,7 +136,6 @@ describe 'FMPReport' do
     it "should create table files with good content" do
       table_file_content = IO.read(find_path_with_base(report2.report_dirpath + "/Tables/Roles"))
       expect(table_file_content).to match(%r{ \s+ 5 \s+ _kF_movie_id \s+ Number \s+ Normal})
-      
     end
     it "should create table files with field comments" do
       expect(movie_file).to match(%r{ \s+ 4 \s+ name \s+ Text \s+ Normal \s+ Name\ of\ the\ movie\.}mx)
@@ -202,7 +201,43 @@ describe 'FMPReport' do
     it "should list relationships between TOs" do 
       expect(relationships_file_content).to match(%r{Roles::_kF_movie_id \s+ Equal \s+ Movies::_id}mx)
     end
+        
+  end
+  
+  describe '#write_menu_sets', :focus => false do
     
+    let (:menuset_folder)                 { find_path_with_base(report2.report_dirpath + "/CustomMenuSets") }
+    let (:menuset_file)                   { find_path_with_base(menuset_folder + '/Restricted Menus') }
+    let (:menuset_file_content)           { IO.read(menuset_file) }
+    
+    it "should create a folder for menu sets" do
+      expect(File.directory?(menuset_folder)).to be true
+    end
+    it "should create a file for each menu set" do
+      expect(File.exists?(menuset_file)).to be true
+    end
+    it "should create a menu set that lists the menus" do
+      expect(menuset_file_content).to match(%r{26 \s+ FileMaker\ Pro\ Copy \s+ 25 \s+ File\ Restricted}mx)
+      expect(menuset_file_content).to match(%r{CustomMenu: \s+ -\ id:\ '26' \s+ name:\ FileMaker\ Pro\ Copy}mx)
+    end
+    
+  end
+
+  describe '#write_menus', :focus => false do
+    
+    let (:menu_folder)                    { find_path_with_base(report2.report_dirpath + "/CustomMenus") }
+    let (:menu_file)                      { find_path_with_base(menu_folder + '/View Copy') }
+    let (:menu_file_content)              { IO.read(menu_file) }
+    
+    it "should create a folder for menus" do
+      expect(File.directory?(menu_folder)).to be true
+    end
+    it "should create a file for each menu" do
+      expect(File.exists?(menu_file)).to be true
+    end
+    it "should create a menu that lists the menu items" do
+      expect(menu_file_content).to match(%r{Layout\ Mode \s+ Preview\ Mode \s+ View\ as\ Form}mx)
+    end
     
   end
 
@@ -211,3 +246,12 @@ describe 'FMPReport' do
     # it "should take a Nokogiri::XML::Element and return YAML"
 
 end
+
+=begin
+
+Running single spec:
+
+, :focus => true
+rspec --tag focus spec/fmpvc/fmpreport_spec.rb
+
+=end
