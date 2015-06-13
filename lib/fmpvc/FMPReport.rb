@@ -230,7 +230,7 @@ module FMPVC
       
       @table_content = Proc.new do |a_table|
         content = ''
-        table_format            = "%6d   %-25s   %-15s  %-15s   %-50s"
+        table_format            = "%6d   %-25s   %-15s  %-15s   %-50s\n"
         table_header_format     = table_format.gsub(%r{d}, 's')
         content                 += format(table_header_format, "id", "Field Name", "Data Type", "Field Type", "Comment")
         content                 += format(table_header_format, "--", "----------", "---------", "----------", "-------")
