@@ -68,6 +68,7 @@ module FMPVC
     end
     
     def write_all_objects()
+      post_notification('report files.', 'Writing')
       @named_objects.each { |obj| write_obj_to_disk(obj[:content], @report_dirpath + obj[:disk_path])}
     end
 
@@ -116,7 +117,7 @@ module FMPVC
     
 
     def parse_fmp_obj(object_base, object_nodes, obj_content, one_file = false)
-      post_notification(object_base.gsub(%r{\/FMPReport\/File\/},''), 'Parsing')
+      post_notification(object_base.gsub(%r{\/FMPReport\/File\/},''), '  Parsing')
       objects_parsed = Array.new
       objects = @report.xpath("#{object_base}#{object_nodes}")
       objects.each do |an_obj|
@@ -153,7 +154,7 @@ module FMPVC
     end
     
     def write_obj_to_disk(objs, full_path)
-      post_notification(full_path.gsub(%r{.*fmp_text/},''), 'Writing')
+      post_notification(full_path.gsub(%r{.*fmp_text/},''), '  Writing')
       if full_path =~ %r{\.txt}
         # single file objects
         File.open(full_path, 'w') do |f|
