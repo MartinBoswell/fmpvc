@@ -8,7 +8,7 @@ FMPVC.configure {}
 
 time_start = Time.new
 
-ddr_dir = './fmp_ddr'
+ddr_dir = FMPVC.configuration.ddr_dirname
 ddr = DDR.new(ddr_dir)
 ddr.process_reports
 ddr.write_reports
