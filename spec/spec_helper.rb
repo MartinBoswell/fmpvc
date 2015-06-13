@@ -16,7 +16,7 @@ end
 
 # Facilitate file matching w/out regard for id and extension (which can easily change)
 def find_path_with_base(f)
-  Dir.glob(f + "*").first
+  Dir.glob(f + "*").first || "" # don't return nil; makes for bad spec error messages
 end
 
 # for delimiting spec runs in a shell
