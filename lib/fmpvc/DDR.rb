@@ -47,7 +47,15 @@ module FMPVC
     end
     
     def process_reports
-      @reports.each { |r| r[:report] = FMPReport.new(r[:link], self) }
+      @reports.each do |r| 
+        # $stdout.puts
+        post_notification(r[:link].gsub(%r{\./+},''), 'Processing')
+        r[:report] = FMPReport.new(r[:link], self) 
+      end
+    end
+    
+    def post_notification(object, verb = 'Updating')
+      $stdout.puts [verb, object].join(" ")
     end
     
     def stringer(n, str = " ")

@@ -29,23 +29,23 @@ module FMPVC
       self.write_dir
       
       ### hierarchical folder structure
-      @scripts                  = parse_fms_obj( "/FMPReport/File/ScriptCatalog",               "/*[name()='Group' or name()='Script']",      @script_content               )
-      @layouts                  = parse_fms_obj( "/FMPReport/File/LayoutCatalog",               "/*[name()='Group' or name()='Layout']",      @layouts_content              )
+      @scripts                  = parse_fmp_obj( "/FMPReport/File/ScriptCatalog",               "/*[name()='Group' or name()='Script']",      @script_content               )
+      @layouts                  = parse_fmp_obj( "/FMPReport/File/LayoutCatalog",               "/*[name()='Group' or name()='Layout']",      @layouts_content              )
       ### single folder with files                                                                                                                                          
-      @value_lists              = parse_fms_obj( "/FMPReport/File/ValueListCatalog",           "/*[name()='ValueList']",                      @value_list_content           )
-      @tables                   = parse_fms_obj( "/FMPReport/File/BaseTableCatalog",           "/*[name()='BaseTable']",                      @table_content                )
-      @custom_functions         = parse_fms_obj( "/FMPReport/File/CustomFunctionCatalog",      "/*[name()='CustomFunction']",                 @custom_function_content      )
-      @menu_sets                = parse_fms_obj( "/FMPReport/File/CustomMenuSetCatalog",       "/*[name()='CustomMenuSet']",                  @menu_sets_content            )
-      @custom_menus             = parse_fms_obj( "/FMPReport/File/CustomMenuCatalog",          "/*[name()='CustomMenu']",                     @custom_menus_content         )
+      @value_lists              = parse_fmp_obj( "/FMPReport/File/ValueListCatalog",           "/*[name()='ValueList']",                      @value_list_content           )
+      @tables                   = parse_fmp_obj( "/FMPReport/File/BaseTableCatalog",           "/*[name()='BaseTable']",                      @table_content                )
+      @custom_functions         = parse_fmp_obj( "/FMPReport/File/CustomFunctionCatalog",      "/*[name()='CustomFunction']",                 @custom_function_content      )
+      @menu_sets                = parse_fmp_obj( "/FMPReport/File/CustomMenuSetCatalog",       "/*[name()='CustomMenuSet']",                  @menu_sets_content            )
+      @custom_menus             = parse_fmp_obj( "/FMPReport/File/CustomMenuCatalog",          "/*[name()='CustomMenu']",                     @custom_menus_content         )
       ### single file output                                                                                                                  
-      @accounts                 = parse_fms_obj( "/FMPReport/File/AccountCatalog",              "/*[name()='Account']",                       @accounts_content,            true )
-      @privileges               = parse_fms_obj( "/FMPReport/File/PrivilegesCatalog",           "/*[name()='PrivilegeSet']",                  @privileges_content,          true )
-      @extended_privileges      = parse_fms_obj( "/FMPReport/File/ExtendedPrivilegeCatalog",    "/*[name()='ExtendedPrivilege']",             @extended_priviledge_content, true )
-      @relationships            = parse_fms_obj( "/FMPReport/File/RelationshipGraph",           "/RelationshipList/*[name()='Relationship']", @relationships_content,       true )
-      @file_access              = parse_fms_obj( "/FMPReport/File/AuthFileCatalog",             '',                                           @file_access_content,         true )       
-      @external_sources         = parse_fms_obj( "/FMPReport/File/ExternalDataSourcesCatalog",  '',                                           @external_sources_content,    true )
-      @file_options             = parse_fms_obj( "/FMPReport/File/Options",                     '',                                           @file_options_content,        true )       
-      @themes                   = parse_fms_obj( "/FMPReport/File/ThemeCatalog",                "/*[name()='Theme']",                         @themes_content,              true )
+      @accounts                 = parse_fmp_obj( "/FMPReport/File/AccountCatalog",              "/*[name()='Account']",                       @accounts_content,            true )
+      @privileges               = parse_fmp_obj( "/FMPReport/File/PrivilegesCatalog",           "/*[name()='PrivilegeSet']",                  @privileges_content,          true )
+      @extended_privileges      = parse_fmp_obj( "/FMPReport/File/ExtendedPrivilegeCatalog",    "/*[name()='ExtendedPrivilege']",             @extended_priviledge_content, true )
+      @relationships            = parse_fmp_obj( "/FMPReport/File/RelationshipGraph",           "/RelationshipList/*[name()='Relationship']", @relationships_content,       true )
+      @file_access              = parse_fmp_obj( "/FMPReport/File/AuthFileCatalog",             '',                                           @file_access_content,         true )       
+      @external_sources         = parse_fmp_obj( "/FMPReport/File/ExternalDataSourcesCatalog",  '',                                           @external_sources_content,    true )
+      @file_options             = parse_fmp_obj( "/FMPReport/File/Options",                     '',                                           @file_options_content,        true )       
+      @themes                   = parse_fmp_obj( "/FMPReport/File/ThemeCatalog",                "/*[name()='Theme']",                         @themes_content,              true )
 
       @named_objects = [
         { :content =>  @scripts,             :disk_path => "/Scripts"                 }, 
@@ -68,6 +68,7 @@ module FMPVC
     end
     
     def write_all_objects()
+      post_notification('report files.', 'Writing')
       @named_objects.each { |obj| write_obj_to_disk(obj[:content], @report_dirpath + obj[:disk_path])}
     end
 
@@ -110,8 +111,13 @@ module FMPVC
   		element_yaml						= element_hash.to_yaml
     end
     
+    def post_notification(object, verb = 'Updating')
+      $stdout.puts [verb, object].join(" ")
+    end
+    
 
-    def parse_fms_obj(object_base, object_nodes, obj_content, one_file = false)
+    def parse_fmp_obj(object_base, object_nodes, obj_content, one_file = false)
+      post_notification(object_base.gsub(%r{\/FMPReport\/File\/},''), '  Parsing')
       objects_parsed = Array.new
       objects = @report.xpath("#{object_base}#{object_nodes}")
       objects.each do |an_obj|
@@ -135,7 +141,7 @@ module FMPVC
         if an_obj.name == 'Group'
           obj_parsed[:type]     = :dir
           obj_parsed[:name]     = sanitized_obj_name_id
-          obj_parsed[:children] = parse_fms_obj(an_obj.path, object_nodes, obj_content) 
+          obj_parsed[:children] = parse_fmp_obj(an_obj.path, object_nodes, obj_content) 
         else  
           obj_parsed[:content]  = one_file ? obj_content.call(objects) : obj_content.call(an_obj)
           obj_parsed[:yaml]     = one_file ? element2yaml(@report.xpath(object_base))     : element2yaml(an_obj)
@@ -148,6 +154,7 @@ module FMPVC
     end
     
     def write_obj_to_disk(objs, full_path)
+      post_notification(full_path.gsub(%r{.*fmp_text/},''), '  Writing')
       if full_path =~ %r{\.txt}
         # single file objects
         File.open(full_path, 'w') do |f|

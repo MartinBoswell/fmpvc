@@ -5,22 +5,22 @@ require 'fmpvc'
 include FMPVC
 
 # create a DDR
-print "Create new DDR..."
+# puts
+# puts "Creating new DDR..."
 ddr_dir = './fmp_ddr'
 ddr = DDR.new(ddr_dir)
-puts "done."
 
 # process FMPReport files
-print "Create FMPReports..."
+# puts
+# puts "Creating FMPReports..."
 ddr.process_reports
-puts "done."
 
-# write them to disk
-print "Write reports to disk..."
+# write report files to disk
+# puts
+# puts "Write report files to disk..."
 ddr.write_reports
-puts "done."
 
-# create a tree file
+# create a tree file, if available
 require 'mkmf'
 module MakeMakefile::Logging
   # don't let MakeMake leave extraneous logs
@@ -28,7 +28,7 @@ module MakeMakefile::Logging
 end 
 tree_command = find_executable 'tree'
 if tree_command
-   puts "Creating tree.txt..."
+   puts "Creating tree.txt."
    `#{tree_command} -F > tree.txt`
 end
 

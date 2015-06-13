@@ -3,6 +3,15 @@ include FMPVC
 
 describe 'DDR' do
   
+  # # Suppress stdout for progress indicators
+  # before(:all) do
+  #   @stdout = $stdout
+  #   $stdout = File.open(File::NULL, 'w+')
+  # end
+  # after(:all) do
+  #   $stdout = @stdout
+  # end
+  
   let (:summary_dir) { './spec/data/test_1/fmp_ddr' }
   let (:ddr1)        { DDR.new(summary_dir) }
   let (:movie_xml1)  { './spec/data/test_1/fmp_ddr/Movies_fmp12.xml'}
@@ -25,15 +34,15 @@ describe 'DDR' do
   end
     it "should be able to determine the base directory of the FMP file" do
     expect(ddr1.base_dir_ddr).to eq(File.expand_path("./spec/data/test_1/fmp_ddr"))
-    # expect(ddr1.base_dir_ddr).to eq("/Users/boswell/Dropbox/Projects/2015/Q1_FMP_versioning/fmp_versioning/spec/data/test_1/fmp_ddr")
   end
   it "should return list of the xml files" do
     expect(ddr1.xml_files.first).to match('Movies_fmp12.xml')
   end
-  it "should generate the FMPReports itself on request" do
-    ddr1.process_reports
-    expect(ddr1.reports.first[:report].class).to be FMPVC::FMPReport
-  end
+  # this generates an FMPReport and does not belong in unit tests
+  # it "should generate the FMPReports itself on request" do
+  #   ddr1.process_reports
+  #   expect(ddr1.reports.first[:report].class).to be FMPVC::FMPReport
+  # end
   it "should write know its generator version" do
     expect(ddr1.fmpa_version).to eq("14.0.1")
   end
