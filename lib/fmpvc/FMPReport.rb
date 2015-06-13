@@ -30,7 +30,8 @@ module FMPVC
       @privileges_filepath          = @report_dirpath + "/PrivilegeSets.txt"
       @ext_privileges_filepath      = @report_dirpath + "/ExtendedPrivileges.txt"
       @relationships_filepath       = @report_dirpath + "/Relationships.txt"
-      @menu_sets_dirpath            = @report_dirpath + "/CustomMenus"
+      @menu_sets_dirpath            = @report_dirpath + "/CustomMenuSets"
+      @menus_dirpath                = @report_dirpath + "/CustomMenus"
       
       self.parse
       self.clean_dir
@@ -44,6 +45,7 @@ module FMPVC
       self.write_extended_privileges
       self.write_relationships
       self.write_menu_sets
+      self.write_menus
       
     end
 
@@ -356,8 +358,8 @@ module FMPVC
     def write_menu_sets
       FileUtils.mkdir_p(@menu_sets_dirpath) unless File.directory?(@menu_sets_dirpath)
       
-      menu_sets_path    = 'FMPReport/File/CustomMenuSetCatalog'
-      menu_sets = @report.xpath("#{menu_sets_path}/*[name()='CustomMenuSet']")
+      menu_sets_path                                  = '/FMPReport/File/CustomMenuSetCatalog'
+      menu_sets                                       = @report.xpath("#{menu_sets_path}/*[name()='CustomMenuSet']")
       menu_sets.each do |a_menu_set|
         menu_set_name                                 = a_menu_set['name']
         menu_set_id                                   = a_menu_set['id']
@@ -376,10 +378,37 @@ module FMPVC
         end
       end
       
+    end      
+          
+    def write_menus
+      FileUtils.mkdir_p(@menus_dirpath) unless File.directory?(@menus_dirpath)
+      
+      menus_path = '/FMPReport/File/CustomMenuCatalog'
+      menus = @report.xpath("#{menus_path}/*[name()='CustomMenu']")
+      menus.each do |a_menu|
+        menu_name                                 = a_menu['name']
+        menu_id                                   = a_menu['id']
+        sanitized_menu_name                       = fs_sanitize(menu_name)
+        sanitized_menu_name_id                    = fs_id(sanitized_menu_name, menu_id)
+        sanitized_menu_name_id_ext                = sanitized_menu_name_id + '.txt'
+        # menu_format                               = "%6d  %-35s"
+        # menu_header_format                        = menu_format.gsub(%r{d}, 's')
+        File.open(@menus_dirpath + "/#{sanitized_menu_name_id_ext}", 'w') do |f|
+          menu_comment = a_menu.xpath('./Comment').text
+          menu_base = a_menu.xpath('./BaseMenu').first['name']
+          f.puts "Name: #{menu_name}"
+          f.puts "Base menu: #{menu_base}"
+          f.puts "Comment: #{menu_comment}"
+          f.puts
+          menu_items = a_menu.xpath("./MenuItemList/*[name()='MenuItem']")
+          menu_items.each do |an_item|
+            an_item.xpath('./Command').each { |c| f.puts "#{c['name']}"}
+            # f.puts .first['name'] if
+          end
+          f.write(NEWLINE + element2yaml(a_menu))
+        end
+      end
     end
-      
-      
-      
       
       
       
