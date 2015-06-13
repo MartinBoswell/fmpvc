@@ -97,22 +97,7 @@ module FMPVC
     
     def element2yaml(xml_element)
   		element_xml							= xml_element.to_xml({:encoding => 'UTF-8'}) # REMEMBER: the encoding
-      begin
-        element_xml_utf8      = element_xml.to_s.force_encoding("UTF-8")
-    		element_hash						= Hash.from_xml(element_xml_utf8)
-      rescue Exception => exception
-        puts "--------------------============"
-        puts "Trying to parse: "
-        puts "#{xml_element}"
-        puts "element_xml class #{element_xml.class}, encoding: #{element_xml.encoding}"
-        puts "element_xml_utf8 class #{element_xml_utf8.class}, encoding: #{element_xml_utf8.encoding}"
-        puts "--------------------============"
-        puts "Error:" 
-        puts "#{exception}"
-        puts "--------------------============"
-        
-
-      end
+  		element_hash						= Hash.from_xml(element_xml)
   		element_yaml						= element_hash.to_yaml
     end
     
