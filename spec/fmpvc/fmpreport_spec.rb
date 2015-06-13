@@ -50,7 +50,7 @@ describe 'FMPReport' do
       end  
     end
 
-    describe '#write_scripts', :focus => false do
+    describe '#write_scripts', :focus => true do
       it "should create a script file on disk" do
         expect(Dir.glob(@report2.report_dirpath + "/Scripts/Actors (id 6)/*.txt").count).to eq(2)
       end
@@ -61,6 +61,10 @@ describe 'FMPReport' do
       it "should create nested script folders" do 
         expect(File.directory?(@report2.report_dirpath + "/Scripts/Actors (id 6)/Actor Triggers (id 10)")).to be true
       end
+      it "should have YAML content" do
+        actor_listing_content = IO.read(find_path_with_base(@report2.report_dirpath + "/Scripts/Actors (id 6)/Actor Listing (id 3)"))
+        expect(actor_listing_content).to match(%r{\-\ enable:\ 'True' \s+ id:\ '89' \s+ name:\ Comment \s+ StepText:\ "#\ Display\ a\ list\ of\ actors" \s+ Text:\ "\ Display\ a\ list\ of\ actors"}mx)
+      end
       it "should create scripts with good content" do
         actor_listing_content = IO.read(find_path_with_base(@report2.report_dirpath + "/Scripts/Actors (id 6)/Actor Listing (id 3)"))
         expect(actor_listing_content).to match(%r{Go to Layout \[ “Actors” \(Actors\) \]})
@@ -69,6 +73,10 @@ describe 'FMPReport' do
         actor_show_roles_content = IO.read(find_path_with_base(@report2.report_dirpath + "/Scripts/Actors (id 6)/Actor | show roles (id 9)"))
         sort_record_regex = %r{Sort Records \[ Keep records in sorted order; Specified Sort Order: Roles::name; ascending \]\[ Restore; No dialog \]} 
         expect(actor_show_roles_content).to match(sort_record_regex)
+      end
+      it "should 'comment out' disabled steps" do
+        script_with_disabled_step = IO.read(find_path_with_base(@report2.report_dirpath + "/Scripts/DDR & fmpvc (id 31)/fmpvc - Save to Disk (id 29)"))
+        expect(script_with_disabled_step).to match(%r{enable:\ 'False' \s+ id:\ '31' \s+ name:\ Adjust\ Window}mx)
       end
     
       it "should create files and directories with id extensions" do
