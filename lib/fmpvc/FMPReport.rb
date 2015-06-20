@@ -489,21 +489,23 @@ module FMPVC
         open_account                               = (open_account_search.size > 0 ? open_account_search.first['name']: "")
         open_layout_search                         = file_options.xpath('./OnOpen/Layout')
         open_layout                                = ( open_layout_search.size > 0 ? open_layout_search.first['name'] : "" )
-      
-        encryption_type                            = file_options.xpath('./Encryption').first['type']
+        
+        # puts "encryption: >>#{file_options.xpath('./Encryption').empty?}<<"
+        encryption_type                            = file_options.xpath('./Encryption').empty? ? '' : file_options.xpath('./Encryption').first['type']
         encryption_note                            = case encryption_type
+                                                     when ""
                                                      when "0"
                                                        "no encryption"
                                                      when "1"
                                                        "AES256 encrypted"
                                                      end
-      
+        minimum_allowed_version                    = file_options.xpath('./OnOpen/MinimumAllowedVersion').empty? ? '' : file_options.xpath('./OnOpen/MinimumAllowedVersion').first['name']
         content += "File Options\n"
         content += "------------\n"
         content += NEWLINE
         content += format(file_options_format, "Encryption:", "#{encryption_type} (#{encryption_note})")
         content += NEWLINE
-    		content += format(file_options_format, "Minimum Allowed Version:", file_options.xpath('./OnOpen/MinimumAllowedVersion').first['name'])
+    		content += format(file_options_format, "Minimum Allowed Version:", minimum_allowed_version)
     		content += format(file_options_format, "Account:", open_account)
     		content += format(file_options_format, "Layout:", open_layout)
         content += NEWLINE
