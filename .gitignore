@@ -12,3 +12,7 @@ spec/data/test_1/fmp_text/
 spec/data/test_2/fmp_text/
 spec/data/test_3/fmp_text/
 spec/data/test_4/fmp_text/
+
+.ruby-version
+.ruby-gemset
+
