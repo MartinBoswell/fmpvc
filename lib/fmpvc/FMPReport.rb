@@ -193,7 +193,7 @@ module FMPVC
         layout_name                  = a_layout['name']
         layout_id                    = a_layout['id']
         layout_table                 = a_layout.xpath('./Table').first['name']
-        layout_theme                 = a_layout.xpath('./Theme').first['name']
+        layout_theme                 = a_layout.xpath('./Theme').empty? ? '' : a_layout.xpath('./Theme').first['name']
         layout_format                = "%18s %-25s\n"
         object_format                = "                    %-16s  %-35s\n"
         content += format(layout_format, "Layout name: ", layout_name)
