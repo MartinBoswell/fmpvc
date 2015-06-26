@@ -265,7 +265,7 @@ module FMPVC
         content = ''
         menu_name         = a_menu['name']
         menu_id           = a_menu['id']
-        menu_base         = a_menu.xpath('./BaseMenu').first['name']
+        menu_base         = a_menu.xpath('./BaseMenu').empty? ? "" : a_menu.xpath('./BaseMenu').first['name']
         menu_comment      = a_menu.xpath('./Comment').text
         menu_format       = "%17s  %-35s\n"
 
