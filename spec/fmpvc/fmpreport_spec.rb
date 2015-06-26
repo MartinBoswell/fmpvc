@@ -283,6 +283,10 @@ describe 'FMPReport' do
       it "should create a menu that lists the menu items" do
         expect(menu_file_content).to match(%r{Layout\ Mode \s+ Preview\ Mode \s+ View\ as\ Form}mx)
       end
+      it "should handle a CustomMenu without a BaseMenu" do
+        ddr5 = double('ddr', :base_dir_ddr => :'./spec/data/test_8/fmp_ddr/')
+        expect{FMPReport.new('Untitled_fmp12.xml', ddr5)}.to_not raise_error
+      end
     
     end
   

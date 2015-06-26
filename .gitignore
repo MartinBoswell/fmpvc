@@ -15,6 +15,7 @@ spec/data/test_4/fmp_text/
 spec/data/test_5/fmp_text/
 spec/data/test_6/fmp_text/
 spec/data/test_7/fmp_text/
+spec/data/test_8/fmp_text/
 
 .ruby-version
 .ruby-gemset
