@@ -31,6 +31,9 @@ describe FMPVC do
   it "produces a tree file by default (if command is available)" do
     expect(FMPVC.configuration.tree_filename).to eq 'tree.txt'
   end
+  it "doesn't supress record info by default" do
+    expect(FMPVC.configuration.show_record_info).to be true
+  end
   
 end
 

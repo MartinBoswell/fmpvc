@@ -25,6 +25,9 @@ OptionParser.new do |opts|
   opts.on('-q', '--quiet', 'Suppress progress messages.') do
     FMPVC.configuration.quiet = true
   end
+  opts.on('-R', '--no-record-info', 'Suppress record specific information in Table YAML.') do
+    FMPVC.configuration.show_record_info = false
+  end
   opts.on('-s', '--summary-file <filename>', 'Look for Summary file named <filename>.') do |s|
     FMPVC.configuration.ddr_filename = s
   end
