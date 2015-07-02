@@ -11,7 +11,7 @@ module FMPVC
   
   class FMPReport
     
-    attr_reader :content, :type, :text_dir, :text_filename, :report_dirpath, :named_objects
+    attr_reader :content, :type, :text_dir, :text_filename, :report_dirpath, :named_objects, :tables
     
     def initialize(report_filename, ddr)
       report_dirpath    = "#{ddr.base_dir_ddr}/#{report_filename}"  # location of the fmpfilename.xml file
@@ -34,6 +34,7 @@ module FMPVC
       ### single folder with files                                                                                                                                          
       @value_lists              = parse_fmp_obj( "/FMPReport/File/ValueListCatalog",           "/*[name()='ValueList']",                      @value_list_content           )
       @tables                   = parse_fmp_obj( "/FMPReport/File/BaseTableCatalog",           "/*[name()='BaseTable']",                      @table_content                )
+      suppress_record_info if FMPVC.configuration.show_record_info == false
       @custom_functions         = parse_fmp_obj( "/FMPReport/File/CustomFunctionCatalog",      "/*[name()='CustomFunction']",                 @custom_function_content      )
       @menu_sets                = parse_fmp_obj( "/FMPReport/File/CustomMenuSetCatalog",       "/*[name()='CustomMenuSet']",                  @menu_sets_content            )
       @custom_menus             = parse_fmp_obj( "/FMPReport/File/CustomMenuCatalog",          "/*[name()='CustomMenu']",                     @custom_menus_content         )
@@ -114,6 +115,15 @@ module FMPVC
     
     def post_notification(object, verb = 'Updating')
       $stdout.puts [verb, object].join(" ") unless FMPVC.configuration.quiet
+    end
+    
+    def suppress_record_info()
+      @tables.each do |a_table|
+        current_yaml = a_table[:yaml]
+        yaml_serial_number_fixed = current_yaml.gsub(%r{(nextValue:.*\D)(\d+)(\D*?)(?=\n)}, '\1\3') # e.g. nextValue: 123serial456 or nextValue: 123serial
+        yaml_record_count_fixed = yaml_serial_number_fixed.gsub(%r{(BaseTable: \s+ id:\ '\d+' \s+ records:\ '.*?)(\d+)'}mx, '\1\'') # e.g. records: '234'
+        a_table[:yaml] = yaml_record_count_fixed
+    end
     end
     
 

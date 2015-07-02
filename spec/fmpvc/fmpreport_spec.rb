@@ -347,7 +347,7 @@ describe 'FMPReport' do
     
     end
   
-    describe '#write_layouts', :focus => true do
+    describe '#write_layouts', :focus => false do
     
       let (:layout_folder)                    { find_path_with_base(@report2.report_dirpath + "/Layouts") }
       let (:layout_file)                      { find_path_with_base(layout_folder + '/Actors') }
@@ -398,7 +398,7 @@ describe 'FMPReport' do
 
     end
     
-    describe '#post_notification', :focus => true do
+    describe '#post_notification', :focus => false do
       it "should update user on progress" do
         expect { @report2.post_notification('an object', 'Updating') }.to output("Updating an object\n").to_stdout
       end
@@ -438,6 +438,24 @@ describe 'FMPReport' do
     end
   end
   
+  # causes other tests to fail when it's not at the end.  what am I manipulating?  can I double the config?
+  describe '#suppress_record_info', :focus => true do
+    before (:each) do
+      FMPVC.configure do |config|
+      end
+    end
+    it "should suppress record info when desired" do
+      FMPVC.configuration.show_record_info = false
+      ddr6 = double('ddr', :base_dir_ddr => :'./spec/data/test_7/fmp_ddr/')
+      report7 = FMPReport.new('Untitled_fmp12.xml', ddr6)
+      report7.write_all_objects
+      report7_yaml = report7.tables[0][:yaml]
+      expect(report7_yaml).to match(%r{records:\ ''}) # record count
+      expect(report7_yaml).to match(%r{nextValue: 123abc}) # serial number 123abc1001
+      expect(report7_yaml).to match(%r{nextValue: xyz}) # serial number 2001xyz
+      expect(report7_yaml).to match(%r{nextValue: ''}) # serial number 2001xyz
+    end
+  end
   
   
 end
