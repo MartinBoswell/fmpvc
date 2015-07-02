@@ -58,6 +58,7 @@ Command-line options:
     -d, --ddr-dir <directory>        Look for DDR files in directory named <directory>.
     -D, --text-dir <directory>       Write text files in directory named <directory>.
     -q, --quiet                      Suppress progress messages.
+    -R, --no-record-info             Suppress record specific information in Table YAML
     -s, --summary-file <filename>    Look for Summary file named <filename>.
     -t, --tree-file <filename>       Set tree file name.
     -T, --no-tree                    Don't create a tree file.
@@ -68,6 +69,13 @@ Command-line options:
 By default, `fmpvc` appends a [YAML](http://www.yaml.org/spec/1.2/spec.html) representation of the FileMaker element to each text file.  `fmpvc` doesn't capture all of the details of every FileMaker object, and even when it does, there are cases where there isn't an easy way to represent the object that is more concise or clear than the YAML description.  In cases where `fmpvc` doesn't describe an aspect of a FileMaker element, by including a full YAML representation, changes will not be missed in a diff.  The YAML is typically more human-readable and easier to diff than the original XML from the DDR.
 
 YAML generation can be suppressed with the `-Y` command-line option.
+
+The DDR includes record specific info in the Tables section:
+
+- count of records in the table
+- next value for serial number (auto-increment) fields.
+
+This information appears in the YAML and causes the Tables files to change even with no changes to the database schema, and therefore, it's undesireable when using these files with a version control system.  This record info (in the YAML) can be suppressed with the `-R` command-line option (the default behavior is to include all information).
 
 ### tree command
 
