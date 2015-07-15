@@ -1,0 +1,24 @@
+﻿Timestamp	Filename	Error	Message
+2015-07-09 07:44:37.254 -0700	test_9-naming.fmp12	0	Import operations started
+2015-07-09 07:44:37.260 -0700	test_9-naming.fmp12	0	Import of tables from clipboard started
+2015-07-09 07:44:37.355 -0700	test_9-naming.fmp12	0	Table “Untitled” imported as “Untitled 2” since a table or table occurrence named “Untitled” already exists.
+2015-07-09 07:44:37.396 -0700	test_9-naming.fmp12	0	tables imported : 1
+2015-07-09 07:44:37.397 -0700	test_9-naming.fmp12	0	Import completed
+2015-07-09 07:44:50.576 -0700	test_9-naming.fmp12	0	Import of tables from clipboard started
+2015-07-09 07:44:50.601 -0700	test_9-naming.fmp12	0	Table “Untitled” imported as “Untitled 2” since a table or table occurrence named “Untitled” already exists.
+2015-07-09 07:44:50.602 -0700	test_9-naming.fmp12	0	tables imported : 1
+2015-07-09 07:44:50.602 -0700	test_9-naming.fmp12	0	Import completed
+2015-07-09 07:45:30.510 -0700	test_9-naming.fmp12	0	Import of tables from clipboard started
+2015-07-09 07:45:30.512 -0700	test_9-naming.fmp12	0	Table “Untitled” imported as “Untitled 2” since a table or table occurrence named “Untitled” already exists.
+2015-07-09 07:45:30.513 -0700	test_9-naming.fmp12	0	tables imported : 1
+2015-07-09 07:45:30.513 -0700	test_9-naming.fmp12	0	Import completed
+2015-07-09 07:45:56.364 -0700	test_9-naming.fmp12	0	Import of tables from clipboard started
+2015-07-09 07:45:56.366 -0700	test_9-naming.fmp12	0	Table “Untitled” imported as “Untitled 2” since a table or table occurrence named “Untitled” already exists.
+2015-07-09 07:45:56.367 -0700	test_9-naming.fmp12	0	tables imported : 1
+2015-07-09 07:45:56.368 -0700	test_9-naming.fmp12	0	Import completed
+2015-07-09 07:46:50.246 -0700	test_9-naming.fmp12	0	Import of tables from clipboard started
+2015-07-09 07:46:50.247 -0700	test_9-naming.fmp12	0	Table “Untitled” imported as “Untitled 2” since a table or table occurrence named “Untitled” already exists.
+2015-07-09 07:46:50.248 -0700	test_9-naming.fmp12	0	tables imported : 1
+2015-07-09 07:46:50.248 -0700	test_9-naming.fmp12	0	Import completed
+2015-07-09 07:47:07.753 -0700	test_9-naming.fmp12	0	Import operations committed
+2015-07-09 07:47:07.753 -0700	test_9-naming.fmp12	0	==================================================================
