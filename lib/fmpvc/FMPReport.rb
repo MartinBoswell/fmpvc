@@ -11,13 +11,13 @@ module FMPVC
   
   class FMPReport
     
-    attr_reader :content, :type, :text_dir, :text_filename, :report_dirpath, :named_objects, :tables
+    attr_reader :content, :type, :text_dir, :text_filename, :report_dirpath, :named_objects, :tables, :scripts, :layouts, :value_lists, :custom_functions, :accounts, :privileges, :extended_privileges, :relationships, :file_access, :external_sources, :file_options, :themes
     
     def initialize(report_filename, ddr)
       report_dirpath    = "#{ddr.base_dir_ddr}/#{report_filename}"  # location of the fmpfilename.xml file
       raise(RuntimeError, "Error: can't find the report file, #{report_dirpath}") unless File.readable?(report_dirpath)
       
-      @content             = IO.read(report_dirpath, mode: 'rb:UTF-16:UTF-8') # transcode is specifically for a spec content match
+      @content             = IO.read(report_dirpath) 
       @text_dir            = "#{ddr.base_dir_ddr}/../#{FMPVC.configuration.text_dirname}"
       @text_filename       = fs_sanitize(report_filename)
       @report_dirpath      = "#{@text_dir}/#{@text_filename}"
