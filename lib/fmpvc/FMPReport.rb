@@ -245,7 +245,7 @@ module FMPVC
         table_header_format     = table_format.gsub(%r{d}, 's')
         content                 += format(table_header_format, "id", "Field Name", "Data Type", "Field Type", "Comment")
         content                 += format(table_header_format, "--", "----------", "---------", "----------", "-------")
-        a_table.xpath("//BaseTable[@name='#{a_table['name'].gsub(%r{(['\\])}, '\\\1')}']/FieldCatalog/*[name()='Field']").each do |t| 
+        a_table.xpath(%{//BaseTable[@name=$table_name]/FieldCatalog/*[name()='Field']}, nil, :table_name => a_table['name']).each do |t| 
           t_comment             = t.xpath("./Comment").text
           content               += format(table_format, t['id'], t['name'], t['dataType'], t['fieldType'], t_comment)
         end

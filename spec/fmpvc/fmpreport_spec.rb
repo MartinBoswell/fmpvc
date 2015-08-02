@@ -470,6 +470,18 @@ describe 'FMPReport' do
       ddr9 = double('ddr', :base_dir_ddr => :'./spec/data/test_9/fmp_ddr/')
       expect {FMPReport.new("test_9-naming_fmp12.xml", ddr9)}.not_to raise_error() 
     end
+    it "should show field names for table names that have single-quotes" do
+      ddr9 = double('ddr', :base_dir_ddr => :'./spec/data/test_9/fmp_ddr/')
+      report9 = FMPReport.new("test_9-naming_fmp12.xml", ddr9)
+      report9.write_all_objects
+      # puts "table 0: #{report9.tables[0]}"
+      # table 6: name '' with ' multiple ' single quotes
+      expect(report9.tables[6][:name]).to match(%r{name '' with ' multiple ' single quotes})
+      expect(report9.tables[6][:content]).to match(%r{field\ name\ with\ '\ pseudo-escaped\ \\'\ single\ \\\\'\ quote \s+ Text \s+ Normal}mx)
+      # table 7: name with ' pseudo-escaped \' single \\' quote
+      expect(report9.tables[7][:name]).to match(%r{name with ' pseudo-escaped \\' single \\\\' quote})
+      expect(report9.tables[7][:content]).to match(%r{field\ name\ with\ '\ pseudo-escaped\ \\'\ single\ \\\\'\ quote \s+ Text \s+ Normal}mx)
+    end
   end
   
   

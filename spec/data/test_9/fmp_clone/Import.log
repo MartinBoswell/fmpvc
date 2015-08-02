@@ -22,3 +22,66 @@
 2015-07-09 07:46:50.248 -0700	test_9-naming.fmp12	0	Import completed
 2015-07-09 07:47:07.753 -0700	test_9-naming.fmp12	0	Import operations committed
 2015-07-09 07:47:07.753 -0700	test_9-naming.fmp12	0	==================================================================
+2015-07-15 10:47:00.817 -0700	test_9-naming.fmp12	0	Import operations started
+2015-07-15 10:47:00.819 -0700	test_9-naming.fmp12	0	Import of tables from clipboard started
+2015-07-15 10:47:00.865 -0700	test_9-naming.fmp12	0	Table “name with ' single quote” imported as “name with ' single quote 2” since a table or table occurrence named “name with ' single quote” already exists.
+2015-07-15 10:47:00.868 -0700	test_9-naming.fmp12	0	tables imported : 1
+2015-07-15 10:47:00.869 -0700	test_9-naming.fmp12	0	Import completed
+2015-07-15 10:47:36.959 -0700	test_9-naming.fmp12	0	Import of tables from clipboard started
+2015-07-15 10:47:36.961 -0700	test_9-naming.fmp12	0	Table “name with ' single quote” imported as “name with ' single quote 2” since a table or table occurrence named “name with ' single quote” already exists.
+2015-07-15 10:47:36.962 -0700	test_9-naming.fmp12	0	tables imported : 1
+2015-07-15 10:47:36.962 -0700	test_9-naming.fmp12	0	Import completed
+2015-07-15 10:48:25.852 -0700	test_9-naming.fmp12	0	Import operations committed
+2015-07-15 10:48:25.853 -0700	test_9-naming.fmp12	0	==================================================================
+2015-08-02 07:31:44.267 -0700	test_9-naming.fmp12	0	Import operations started
+2015-08-02 07:31:44.268 -0700	test_9-naming.fmp12	0	Import of fields from clipboard started
+2015-08-02 07:31:44.272 -0700	Untitled	8200	Item “field name with ' pseudo-escaped \' single \\' quote” cannot be easily used in a calculation formula.
+2015-08-02 07:31:44.273 -0700	Untitled	8200	Item “field name with \ backslash” cannot be easily used in a calculation formula.
+2015-08-02 07:31:44.273 -0700	Untitled	8200	Item “field name with " double quote” cannot be easily used in a calculation formula.
+2015-08-02 07:31:44.274 -0700	Untitled	8200	Item “field name with / slash” cannot be easily used in a calculation formula.
+2015-08-02 07:31:44.277 -0700	Untitled	0	fields imported : 7
+2015-08-02 07:31:44.277 -0700	test_9-naming.fmp12	0	Import completed
+2015-08-02 07:31:48.759 -0700	test_9-naming.fmp12	0	Import of fields from clipboard started
+2015-08-02 07:31:48.764 -0700	name with space	8200	Item “field name with ' pseudo-escaped \' single \\' quote” cannot be easily used in a calculation formula.
+2015-08-02 07:31:48.765 -0700	name with space	8200	Item “field name with \ backslash” cannot be easily used in a calculation formula.
+2015-08-02 07:31:48.765 -0700	name with space	8200	Item “field name with " double quote” cannot be easily used in a calculation formula.
+2015-08-02 07:31:48.766 -0700	name with space	8200	Item “field name with / slash” cannot be easily used in a calculation formula.
+2015-08-02 07:31:48.769 -0700	name with space	0	fields imported : 7
+2015-08-02 07:31:48.769 -0700	test_9-naming.fmp12	0	Import completed
+2015-08-02 07:31:56.006 -0700	test_9-naming.fmp12	0	Import of fields from clipboard started
+2015-08-02 07:31:56.010 -0700	name with ' single quote	8200	Item “field name with ' pseudo-escaped \' single \\' quote” cannot be easily used in a calculation formula.
+2015-08-02 07:31:56.011 -0700	name with ' single quote	8200	Item “field name with \ backslash” cannot be easily used in a calculation formula.
+2015-08-02 07:31:56.012 -0700	name with ' single quote	8200	Item “field name with " double quote” cannot be easily used in a calculation formula.
+2015-08-02 07:31:56.012 -0700	name with ' single quote	8200	Item “field name with / slash” cannot be easily used in a calculation formula.
+2015-08-02 07:31:56.016 -0700	name with ' single quote	0	fields imported : 7
+2015-08-02 07:31:56.016 -0700	test_9-naming.fmp12	0	Import completed
+2015-08-02 07:31:59.215 -0700	test_9-naming.fmp12	0	Import of fields from clipboard started
+2015-08-02 07:31:59.219 -0700	name with " double quote	8200	Item “field name with ' pseudo-escaped \' single \\' quote” cannot be easily used in a calculation formula.
+2015-08-02 07:31:59.220 -0700	name with " double quote	8200	Item “field name with \ backslash” cannot be easily used in a calculation formula.
+2015-08-02 07:31:59.220 -0700	name with " double quote	8200	Item “field name with " double quote” cannot be easily used in a calculation formula.
+2015-08-02 07:31:59.221 -0700	name with " double quote	8200	Item “field name with / slash” cannot be easily used in a calculation formula.
+2015-08-02 07:31:59.224 -0700	name with " double quote	0	fields imported : 7
+2015-08-02 07:31:59.224 -0700	test_9-naming.fmp12	0	Import completed
+2015-08-02 07:32:02.617 -0700	test_9-naming.fmp12	0	Import of fields from clipboard started
+2015-08-02 07:32:02.621 -0700	name with \ backslash	8200	Item “field name with ' pseudo-escaped \' single \\' quote” cannot be easily used in a calculation formula.
+2015-08-02 07:32:02.622 -0700	name with \ backslash	8200	Item “field name with \ backslash” cannot be easily used in a calculation formula.
+2015-08-02 07:32:02.623 -0700	name with \ backslash	8200	Item “field name with " double quote” cannot be easily used in a calculation formula.
+2015-08-02 07:32:02.623 -0700	name with \ backslash	8200	Item “field name with / slash” cannot be easily used in a calculation formula.
+2015-08-02 07:32:02.626 -0700	name with \ backslash	0	fields imported : 7
+2015-08-02 07:32:02.626 -0700	test_9-naming.fmp12	0	Import completed
+2015-08-02 07:32:05.759 -0700	test_9-naming.fmp12	0	Import of fields from clipboard started
+2015-08-02 07:32:05.763 -0700	name with / slash	8200	Item “field name with ' pseudo-escaped \' single \\' quote” cannot be easily used in a calculation formula.
+2015-08-02 07:32:05.764 -0700	name with / slash	8200	Item “field name with \ backslash” cannot be easily used in a calculation formula.
+2015-08-02 07:32:05.765 -0700	name with / slash	8200	Item “field name with " double quote” cannot be easily used in a calculation formula.
+2015-08-02 07:32:05.765 -0700	name with / slash	8200	Item “field name with / slash” cannot be easily used in a calculation formula.
+2015-08-02 07:32:05.769 -0700	name with / slash	0	fields imported : 7
+2015-08-02 07:32:05.769 -0700	test_9-naming.fmp12	0	Import completed
+2015-08-02 07:32:13.975 -0700	test_9-naming.fmp12	0	Import of fields from clipboard started
+2015-08-02 07:32:13.980 -0700	name with ' pseudo-escaped \' single \\' quote	8200	Item “field name with ' pseudo-escaped \' single \\' quote” cannot be easily used in a calculation formula.
+2015-08-02 07:32:13.981 -0700	name with ' pseudo-escaped \' single \\' quote	8200	Item “field name with \ backslash” cannot be easily used in a calculation formula.
+2015-08-02 07:32:13.981 -0700	name with ' pseudo-escaped \' single \\' quote	8200	Item “field name with " double quote” cannot be easily used in a calculation formula.
+2015-08-02 07:32:13.982 -0700	name with ' pseudo-escaped \' single \\' quote	8200	Item “field name with / slash” cannot be easily used in a calculation formula.
+2015-08-02 07:32:13.985 -0700	name with ' pseudo-escaped \' single \\' quote	0	fields imported : 7
+2015-08-02 07:32:13.985 -0700	test_9-naming.fmp12	0	Import completed
+2015-08-02 07:32:16.757 -0700	test_9-naming.fmp12	0	Import operations committed
+2015-08-02 07:32:16.757 -0700	test_9-naming.fmp12	0	==================================================================
