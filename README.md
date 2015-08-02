@@ -1,5 +1,7 @@
 # FMPVC
 
+#### **Warning:** with version changes in `FMPVC`, output format or content may change with no change to the underlying FileMaker files or their DDR.  Therefore, when using `FMPVC` with a version control system, it is prudent to only run a new version `fmpvc` on a clean repository and check for differences before proceeding.
+
 `FMPVC` is a tool to help FileMaker developers by creating a set of text files which represent design objects in their databases (e.g. scripts, custom functions, layouts, etc.).  `fmpvc` has no access to database content.  The command, `fmpvc`, parses a Database Design Report (DDR) produced by FileMaker Pro Advanced and creates text files for each of the primary FileMaker objects described in the DDR.  With those files the developer may:
 
 1. use a version control system to track changes to databases

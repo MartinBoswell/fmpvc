@@ -1,5 +1,12 @@
 # FMPVC Release Notes
 
+## v0.3.5 (2015-08-02)
+
+### Bugs Fixed
+
+- Fixed missing HTML entity characters from calculations (e.g. in Script Steps) by changing FMPReport content encoding (issue #6)
+- Fixed parsing problems with Table names containing single-quotes (issue #1)
+
 ## v0.3.4 (2015-07-02)
 
 ### New Features
