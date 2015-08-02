@@ -441,9 +441,9 @@ describe 'FMPReport' do
       expect(File.directory?( find_path_with_base(empty_report.report_dirpath) )).to be true
     end
   end
-  
+
   # causes other tests to fail when it's not at the end.  what am I manipulating?  can I double the config?
-  describe '#suppress_record_info', :focus => true do
+  describe '#suppress_record_info', :focus => false do
     before (:each) do
       FMPVC.configure do |config|
       end
@@ -458,6 +458,29 @@ describe 'FMPReport' do
       expect(report7_yaml).to match(%r{nextValue: 123abc}) # serial number 123abc1001
       expect(report7_yaml).to match(%r{nextValue: xyz}) # serial number 2001xyz
       expect(report7_yaml).to match(%r{nextValue: ''}) # serial number 2001xyz
+    end
+  end
+  
+  describe 'name quoting for xpath queries', :focus => true do
+    before (:each) do
+      FMPVC.configure do |config|
+      end
+    end
+    it "should not throw an error with single-quotes in table names" do
+      ddr9 = double('ddr', :base_dir_ddr => :'./spec/data/test_9/fmp_ddr/')
+      expect {FMPReport.new("test_9-naming_fmp12.xml", ddr9)}.not_to raise_error() 
+    end
+    it "should show field names for table names that have single-quotes" do
+      ddr9 = double('ddr', :base_dir_ddr => :'./spec/data/test_9/fmp_ddr/')
+      report9 = FMPReport.new("test_9-naming_fmp12.xml", ddr9)
+      report9.write_all_objects
+      # puts "table 0: #{report9.tables[0]}"
+      # table 6: name '' with ' multiple ' single quotes
+      expect(report9.tables[6][:name]).to match(%r{name '' with ' multiple ' single quotes})
+      expect(report9.tables[6][:content]).to match(%r{field\ name\ with\ '\ pseudo-escaped\ \\'\ single\ \\\\'\ quote \s+ Text \s+ Normal}mx)
+      # table 7: name with ' pseudo-escaped \' single \\' quote
+      expect(report9.tables[7][:name]).to match(%r{name with ' pseudo-escaped \\' single \\\\' quote})
+      expect(report9.tables[7][:content]).to match(%r{field\ name\ with\ '\ pseudo-escaped\ \\'\ single\ \\\\'\ quote \s+ Text \s+ Normal}mx)
     end
   end
   
